@@ -3,24 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHOST_OS | mrhaker-7</title>
+    <title>GHOST_OS_PRO | mrhaker-7</title>
     <style>
-        body { background: #050505; color: #00ff41; font-family: 'Courier New', monospace; padding: 20px; margin: 0; }
-        #output { white-space: pre-wrap; line-height: 1.4; margin-bottom: 10px; }
+        body { background: #050505; color: #00ff41; font-family: 'Courier New', monospace; padding: 20px; margin: 0; overflow-x: hidden; }
+        #output { white-space: pre-wrap; line-height: 1.6; margin-bottom: 15px; text-shadow: 0 0 5px rgba(0, 255, 65, 0.3); }
         .prompt { color: #00ff41; font-weight: bold; }
-        .line { display: flex; align-items: center; }
-        input { background: transparent; border: none; color: #00ff41; font-family: inherit; font-size: inherit; outline: none; flex: 1; }
-        .note-item { color: #ffff00; border-left: 2px solid #ffff00; padding-left: 10px; margin: 5px 0; }
-        .time { color: #00bbff; }
+        .line { display: flex; align-items: center; background: rgba(0, 255, 65, 0.05); padding: 5px; border-radius: 4px; }
+        input { background: transparent; border: none; color: #00ff41; font-family: inherit; font-size: 16px; outline: none; flex: 1; caret-color: #00ff41; }
+        .note-item { color: #ffff00; border-left: 3px solid #ffff00; padding-left: 10px; margin: 8px 0; font-size: 14px; }
+        .status-box { color: #00bbff; border: 1px dashed #00bbff; padding: 10px; margin: 10px 0; }
+        .cmd-hint { color: #ffffff; background: #222; padding: 0 5px; border-radius: 3px; font-size: 12px; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #00ff41; }
     </style>
 </head>
 <body onclick="document.getElementById('in').focus()">
 
     <div id="output">
-[GHOST_OS V3.0 ONLINE]
-[LOCATION: MERU_SECTOR]
------------------------
-Type 'help' for power commands.
+[GHOST_SYSTEM_v4.0_STABLE]
+[AUTHORIZED_USER: mrhaker-7]
+[RADAR: SCANNING_SECTOR_254...]
+---------------------------------------
+Type <span class="cmd-hint">help</span> to view all pro commands.
     </div>
 
     <div class="line">
@@ -32,7 +36,14 @@ Type 'help' for power commands.
         const input = document.getElementById('in');
         const output = document.getElementById('output');
 
-        const helpMsg = "POWER COMMANDS:<br> - <span class='time'>time</span> : Current System Time<br> - <span>save [text]</span> : Store a quick note<br> - <span>notes</span> : View all saved notes<br> - <span>purge</span> : Delete all notes<br> - <span>vault</span> : Secure Storage<br> - <span>clear</span> : Reset Screen";
+        const helpMsg = `
+AVAILABLE_COMMANDS:
+- <span class="prompt">save [text]</span> : Store private data to browser memory
+- <span class="prompt">notes</span>      : Retrieve all saved data
+- <span class="prompt">status</span>     : Run system radar & diagnostics
+- <span class="prompt">vault</span>      : Transfer to Secure Encryption Vault
+- <span class="prompt">purge</span>      : Wipe all saved notes
+- <span class="prompt">clear</span>      : Reboot terminal display`;
 
         input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
@@ -44,35 +55,46 @@ Type 'help' for power commands.
 
                 if (cmd === "help") {
                     output.innerHTML += `<div>${helpMsg}</div>`;
-                } else if (cmd === "time") {
-                    output.innerHTML += `<div class="time">${new Date().toLocaleString()}</div>`;
+                } else if (cmd === "status") {
+                    const uptime = Math.floor(performance.now() / 1000);
+                    output.innerHTML += `
+<div class="status-box">
+[RADAR DIAGNOSTICS]
+> NETWORK: ${navigator.onLine ? "ENCRYPTED_ONLINE" : "OFFLINE_MODE"}
+> DEVICE:  ${navigator.platform}
+> UPTIME:  ${uptime}s
+> COORDS:  MERU_KENYA_254
+> RAM_LAT: STABLE
+</div>`;
                 } else if (cmd === "save") {
                     if (!args) {
-                        output.innerHTML += "<div>ERR: No text provided. Usage: save [note content]</div>";
+                        output.innerHTML += "<div style='color:red'>[ERR] DATA_REQUIRED. Usage: save [text]</div>";
                     } else {
                         let notes = JSON.parse(localStorage.getItem('ghost_notes') || "[]");
                         notes.push({text: args, time: new Date().toLocaleString()});
                         localStorage.setItem('ghost_notes', JSON.stringify(notes));
-                        output.innerHTML += "<div>[SUCCESS] Note synced to local database.</div>";
+                        output.innerHTML += "<div>[SUCCESS] Data packet stored in local memory.</div>";
                     }
                 } else if (cmd === "notes") {
                     let notes = JSON.parse(localStorage.getItem('ghost_notes') || "[]");
                     if (notes.length === 0) {
-                        output.innerHTML += "<div>Database empty.</div>";
+                        output.innerHTML += "<div>[EMPTY] No data packets found.</div>";
                     } else {
+                        output.innerHTML += "<div>[RETRIEVING_DATA...]</div>";
                         notes.forEach((n, i) => {
-                            output.innerHTML += `<div class="note-item">${i+1}. ${n.text} <small>(${n.time})</small></div>`;
+                            output.innerHTML += `<div class="note-item">${i+1}. ${n.text} <br><small style="color:#888">${n.time}</small></div>`;
                         });
                     }
                 } else if (cmd === "purge") {
                     localStorage.removeItem('ghost_notes');
-                    output.innerHTML += "<div>[CLEANSED] All notes deleted.</div>";
+                    output.innerHTML += "<div>[CLEANSED] Local database wiped.</div>";
                 } else if (cmd === "vault") {
-                    window.location.href = "https://mrhaker-7.github.io/ghost-vault/";
+                    output.innerHTML += "<div>TRANSFURING TO VAULT...</div>";
+                    setTimeout(() => { window.location.href = "https://mrhaker-7.github.io/ghost-vault/"; }, 1000);
                 } else if (cmd === "clear") {
-                    output.innerHTML = "[SYSTEM REFRESHED]";
-                } else {
-                    output.innerHTML += "<div>COMMAND_UNKNOWN</div>";
+                    output.innerHTML = "[SYSTEM_RELOADED]";
+                } else if (raw !== "") {
+                    output.innerHTML += `<div><span style="color:red">!</span> UNKNOWN_COMMAND: ${cmd}</div>`;
                 }
 
                 input.value = "";
