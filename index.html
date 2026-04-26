@@ -3,50 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHOST_OS_ULTIMATE | mrhaker-7</title>
+    <title>GHOST_OS_V6 | AUTH_GATE</title>
     <style>
-        body { background: #050505; color: #00ff41; font-family: 'Courier New', monospace; padding: 20px; margin: 0; overflow-x: hidden; }
-        #output { white-space: pre-wrap; line-height: 1.6; margin-bottom: 15px; text-shadow: 0 0 5px rgba(0, 255, 65, 0.3); }
+        body { background: #050505; color: #00ff41; font-family: 'Courier New', monospace; padding: 20px; margin: 0; }
+        #output { white-space: pre-wrap; line-height: 1.6; margin-bottom: 15px; }
         .prompt { color: #00ff41; font-weight: bold; }
         .line { display: flex; align-items: center; background: rgba(0, 255, 65, 0.05); padding: 5px; border-radius: 4px; }
-        input { background: transparent; border: none; color: #00ff41; font-family: inherit; font-size: 16px; outline: none; flex: 1; caret-color: #00ff41; }
+        input { background: transparent; border: none; color: #00ff41; font-family: inherit; font-size: 16px; outline: none; flex: 1; }
         .radar-box { border: 1px double #00ff41; padding: 12px; margin: 10px 0; background: rgba(0,255,65,0.03); border-radius: 8px; }
-        .note-item { color: #ffff00; border-left: 3px solid #ffff00; padding-left: 10px; margin: 8px 0; font-size: 14px; }
-        .news-item { color: #00bbff; margin: 8px 0; font-size: 14px; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px; }
-        .cmd-hint { color: #ffffff; background: #222; padding: 0 5px; border-radius: 3px; font-size: 12px; }
+        .locked { color: #ff0000; font-weight: bold; } /* Red for locked status */
+        .unlocked { color: #00ff41; font-weight: bold; }
     </style>
 </head>
 <body onclick="document.getElementById('in').focus()">
 
     <div id="output">
-[GHOST_OS_v5.6_ULTIMATE]
-[AUTHORIZED_USER: mrhaker-7]
-[RANK: SYSTEM_ARCHITECT]
-[LOCATION: MERU_SECTOR_254]
+[GHOST_SYSTEM_v6.0_INITIALIZED]
+[SYSTEM_STATUS: <span id="sys-status" class="locked">LOCKED</span>]
 ---------------------------------------
-Type <span class="cmd-hint">help</span> to view the full command suite.
+RESTRICTED ACCESS. Type <span style="color:#fff">login [password]</span> to proceed.
+(Hint: For development, password is <span style="color:#666">ghost7</span>)
     </div>
 
     <div class="line">
-        <span class="prompt">andy@ghost:~$</span>
+        <span id="terminal-prompt" class="prompt">guest@ghost:~$</span>
         <input type="text" id="in" autofocus autocomplete="off" spellcheck="false">
     </div>
 
     <script>
         const input = document.getElementById('in');
         const output = document.getElementById('output');
+        const sysStatus = document.getElementById('sys-status');
+        const prompt = document.getElementById('terminal-prompt');
 
-        const helpMsg = `
-SYSTEM_COMMANDS:
-- <span class="prompt">scan</span>   : Network Intelligence Radar (New)
-- <span class="prompt">rate</span>   : Live USD/KES Market Radar
-- <span class="prompt">news</span>   : Fetch Global Tech Headlines
-- <span class="prompt">status</span> : Run Diagnostics & Uptime
-- <span class="prompt">time</span>   : Global Synchronized Clock
-- <span class="prompt">save</span>   : Store Data [Usage: save text]
-- <span class="prompt">notes</span>  : Retrieve Stored Packets
-- <span class="prompt">vault</span>  : Transfer to Ghost Vault
-- <span class="prompt">clear</span>  : Reboot Display`;
+        let isAuthenticated = false;
 
         input.addEventListener('keydown', async function(e) {
             if (e.key === 'Enter') {
@@ -54,83 +44,65 @@ SYSTEM_COMMANDS:
                 const cmd = raw.split(' ')[0].toLowerCase();
                 const args = raw.substring(cmd.length).trim();
                 
-                output.innerHTML += `<div><span class="prompt">andy@ghost:~$</span> ${raw}</div>`;
+                output.innerHTML += `<div><span class="prompt">${prompt.innerText}</span> ${raw}</div>`;
 
-                // 1. THE NEW NETWORK SCAN
-                if (cmd === "scan") {
-                    output.innerHTML += "<div>[INITIATING_NETWORK_TRACE...]</div>";
+                // --- LOGIN LOGIC ---
+                if (cmd === "login") {
+                    if (args === "ghost7") {
+                        isAuthenticated = true;
+                        sysStatus.innerText = "AUTHORIZED";
+                        sysStatus.className = "unlocked";
+                        prompt.innerText = "mrhaker-7@ghost:~$";
+                        output.innerHTML += "<div>[ACCESS_GRANTED] Welcome back, Architect.</div>";
+                    } else {
+                        output.innerHTML += "<div class='locked'>[ACCESS_DENIED] INVALID_CREDENTIALS</div>";
+                    }
+                }
+
+                // --- PROTECTED COMMANDS ---
+                else if (!isAuthenticated) {
+                    output.innerHTML += "<div class='locked'>[ERR] AUTH_REQUIRED. Please login first.</div>";
+                }
+
+                else if (cmd === "scan") {
+                    output.innerHTML += "<div>[TRACING...]</div>";
                     try {
                         const res = await fetch('https://ipapi.co/json/');
                         const data = await res.json();
-                        output.innerHTML += `
-<div class="radar-box" style="border-color: #ff00ff; color: #ff00ff;">
-[NETWORK_TRACE_RESULTS]
-> PUBLIC_IP: ${data.ip}
-> PROVIDER:  ${data.org}
-> REGION:    ${data.city}, ${data.country_name}
-> STATUS:    TRACE_COMPLETE
-</div>`;
-                    } catch (e) { output.innerHTML += "<div>[ERR] TRACE_INTERRUPTED</div>"; }
+                        output.innerHTML += `<div class="radar-box">IP: ${data.ip}<br>ISP: ${data.org}</div>`;
+                    } catch (e) { output.innerHTML += "<div>[ERR]</div>"; }
                 }
 
-                // 2. LIVE MARKET RADAR
                 else if (cmd === "rate") {
-                    output.innerHTML += "<div>[CONNECTING_TO_MARKETS...]</div>";
-                    try {
-                        const res = await fetch('https://open.er-api.com/v6/latest/USD');
-                        const data = await res.json();
-                        output.innerHTML += `<div class="radar-box">BASE: 1 USD<br>MARKET: <span style="color:#ffff00">${data.rates.KES.toFixed(2)} KES</span></div>`;
-                    } catch (e) { output.innerHTML += "<div>[ERR] MARKET_OFFLINE</div>"; }
+                    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+                    const data = await res.json();
+                    output.innerHTML += `<div class="radar-box">1 USD = ${data.rates.KES.toFixed(2)} KES</div>`;
                 }
 
-                // 3. NEWS FEED
-                else if (cmd === "news") {
-                    output.innerHTML += "<div>[SCANNING_DECODED_FEEDS...]</div>";
-                    try {
-                        const res = await fetch('https://dev.to/api/articles?top=3');
-                        const articles = await res.json();
-                        let newsHTML = '<div class="radar-box">TOP_STORIES:<br>';
-                        articles.forEach(a => { newsHTML += `<div class="news-item">» ${a.title}</div>`; });
-                        newsHTML += '</div>';
-                        output.innerHTML += newsHTML;
-                    } catch (e) { output.innerHTML += "<div>[ERR] FEED_UNAVAILABLE</div>"; }
-                }
-
-                // 4. PERSISTENT STORAGE
                 else if (cmd === "save") {
-                    if (!args) { output.innerHTML += "<div>[ERR] NO_DATA_INPUT</div>"; }
-                    else {
-                        let notes = JSON.parse(localStorage.getItem('ghost_notes') || "[]");
-                        notes.push({text: args, time: new Date().toLocaleString()});
-                        localStorage.setItem('ghost_notes', JSON.stringify(notes));
-                        output.innerHTML += "<div>[SUCCESS] Packet stored.</div>";
-                    }
+                    let notes = JSON.parse(localStorage.getItem('ghost_notes') || "[]");
+                    notes.push({text: args, time: new Date().toLocaleString()});
+                    localStorage.setItem('ghost_notes', JSON.stringify(notes));
+                    output.innerHTML += "<div>[SAVED]</div>";
                 }
 
                 else if (cmd === "notes") {
                     let notes = JSON.parse(localStorage.getItem('ghost_notes') || "[]");
-                    if (notes.length === 0) { output.innerHTML += "<div>[EMPTY]</div>"; }
-                    else {
-                        notes.forEach((n, i) => {
-                            output.innerHTML += `<div class="note-item">${i+1}. ${n.text} <br><small style="color:#666">${n.time}</small></div>`;
-                        });
-                    }
+                    notes.forEach((n, i) => { output.innerHTML += `<div style="color:#ffff00">${i+1}. ${n.text}</div>`; });
                 }
 
-                // 5. UTILITIES
-                else if (cmd === "status") {
-                    output.innerHTML += `<div class="radar-box" style="color: #00bbff; border-color: #00bbff;">UPTIME: ${Math.floor(performance.now() / 1000)}s<br>OS: ${navigator.platform}</div>`;
+                else if (cmd === "logout") {
+                    isAuthenticated = false;
+                    sysStatus.innerText = "LOCKED";
+                    sysStatus.className = "locked";
+                    prompt.innerText = "guest@ghost:~$";
+                    output.innerHTML += "<div>[LOGGED_OUT] Session terminated.</div>";
                 }
-                else if (cmd === "time") {
-                    const now = new Date();
-                    output.innerHTML += `<div class="radar-box">[CLOCK] ${now.toLocaleTimeString()}</div>`;
-                }
-                else if (cmd === "vault") {
-                    window.location.href = "https://mrhaker-7.github.io/ghost-vault/";
-                }
+
                 else if (cmd === "clear") { output.innerHTML = "[SYSTEM_RELOADED]"; }
-                else if (cmd === "help") { output.innerHTML += `<div>${helpMsg}</div>`; }
-                else if (raw !== "") { output.innerHTML += `<div>UNKNOWN_CMD: ${cmd}</div>`; }
+                else if (cmd === "help") {
+                    output.innerHTML += "<div>PUBLIC: login<br>PRIVATE: scan, rate, save, notes, logout, clear</div>";
+                }
 
                 input.value = "";
                 window.scrollTo(0, document.body.scrollHeight);
