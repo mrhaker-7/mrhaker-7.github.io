@@ -3,28 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHOST_OS_PRO | mrhaker-7</title>
+    <title>GHOST_OS_ULTIMATE | mrhaker-7</title>
     <style>
         body { background: #050505; color: #00ff41; font-family: 'Courier New', monospace; padding: 20px; margin: 0; overflow-x: hidden; }
         #output { white-space: pre-wrap; line-height: 1.6; margin-bottom: 15px; text-shadow: 0 0 5px rgba(0, 255, 65, 0.3); }
         .prompt { color: #00ff41; font-weight: bold; }
         .line { display: flex; align-items: center; background: rgba(0, 255, 65, 0.05); padding: 5px; border-radius: 4px; }
         input { background: transparent; border: none; color: #00ff41; font-family: inherit; font-size: 16px; outline: none; flex: 1; caret-color: #00ff41; }
+        .radar-box { border: 1px double #00ff41; padding: 12px; margin: 10px 0; background: rgba(0,255,65,0.03); border-radius: 8px; }
         .note-item { color: #ffff00; border-left: 3px solid #ffff00; padding-left: 10px; margin: 8px 0; font-size: 14px; }
-        .status-box { color: #00bbff; border: 1px dashed #00bbff; padding: 10px; margin: 10px 0; }
+        .news-item { color: #00bbff; margin: 8px 0; font-size: 14px; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px; }
         .cmd-hint { color: #ffffff; background: #222; padding: 0 5px; border-radius: 3px; font-size: 12px; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #00ff41; }
+        .rate-val { color: #ffff00; font-weight: bold; font-size: 1.2em; }
     </style>
 </head>
 <body onclick="document.getElementById('in').focus()">
 
     <div id="output">
-[GHOST_SYSTEM_v4.0_STABLE]
+[GHOST_OS_v5.2_ULTIMATE_STABLE]
 [AUTHORIZED_USER: mrhaker-7]
-[RADAR: SCANNING_SECTOR_254...]
+[RANK: SYSTEM_ARCHITECT]
+[LOCATION: MERU_SECTOR_254]
 ---------------------------------------
-Type <span class="cmd-hint">help</span> to view all pro commands.
+Type <span class="cmd-hint">help</span> to view the full command suite.
     </div>
 
     <div class="line">
@@ -37,15 +38,18 @@ Type <span class="cmd-hint">help</span> to view all pro commands.
         const output = document.getElementById('output');
 
         const helpMsg = `
-AVAILABLE_COMMANDS:
-- <span class="prompt">save [text]</span> : Store private data to browser memory
-- <span class="prompt">notes</span>      : Retrieve all saved data
-- <span class="prompt">status</span>     : Run system radar & diagnostics
-- <span class="prompt">vault</span>      : Transfer to Secure Encryption Vault
-- <span class="prompt">purge</span>      : Wipe all saved notes
-- <span class="prompt">clear</span>      : Reboot terminal display`;
+SYSTEM_COMMANDS:
+- <span class="prompt">status</span> : Run diagnostics & check Uptime
+- <span class="prompt">time</span>   : Global Synchronized Clock
+- <span class="prompt">rate</span>   : Live USD/KES Market Radar
+- <span class="prompt">news</span>   : Fetch Global Tech Headlines
+- <span class="prompt">save</span>   : Store private data [Usage: save text]
+- <span class="prompt">notes</span>  : Retrieve all stored data packets
+- <span class="prompt">vault</span>  : Secure Transfer to Ghost Vault
+- <span class="prompt">purge</span>  : Permanent Data Wipe
+- <span class="prompt">clear</span>  : Reboot Display`;
 
-        input.addEventListener('keydown', function(e) {
+        input.addEventListener('keydown', async function(e) {
             if (e.key === 'Enter') {
                 const raw = input.value.trim();
                 const cmd = raw.split(' ')[0].toLowerCase();
@@ -53,49 +57,80 @@ AVAILABLE_COMMANDS:
                 
                 output.innerHTML += `<div><span class="prompt">andy@ghost:~$</span> ${raw}</div>`;
 
-                if (cmd === "help") {
-                    output.innerHTML += `<div>${helpMsg}</div>`;
-                } else if (cmd === "status") {
-                    const uptime = Math.floor(performance.now() / 1000);
+                // 1. IDENTITY & DIAGNOSTICS
+                if (cmd === "status") {
                     output.innerHTML += `
-<div class="status-box">
-[RADAR DIAGNOSTICS]
+<div class="radar-box" style="color: #00bbff; border-color: #00bbff;">
+[DIAGNOSTICS]
 > NETWORK: ${navigator.onLine ? "ENCRYPTED_ONLINE" : "OFFLINE_MODE"}
 > DEVICE:  ${navigator.platform}
-> UPTIME:  ${uptime}s
-> COORDS:  MERU_KENYA_254
-> RAM_LAT: STABLE
+> UPTIME:  ${Math.floor(performance.now() / 1000)}s
+> STATUS:  SYSTEM_OPTIMAL
 </div>`;
-                } else if (cmd === "save") {
-                    if (!args) {
-                        output.innerHTML += "<div style='color:red'>[ERR] DATA_REQUIRED. Usage: save [text]</div>";
-                    } else {
+                } 
+
+                else if (cmd === "time") {
+                    const now = new Date();
+                    output.innerHTML += `<div class="radar-box">[CLOCK] ${now.toLocaleTimeString()}<br>${now.toDateString()}</div>`;
+                }
+
+                // 2. LIVE DATA RADAR (APIs)
+                else if (cmd === "rate") {
+                    output.innerHTML += "<div>[CONNECTING_TO_FINANCIAL_MARKETS...]</div>";
+                    try {
+                        const res = await fetch('https://open.er-api.com/v6/latest/USD');
+                        const data = await res.json();
+                        const ksh = data.rates.KES.toFixed(2);
+                        output.innerHTML += `<div class="radar-box">BASE: 1 USD<br>MARKET: <span class="rate-val">${ksh} KES</span><br>SOURCE: GLOBAL_EXCHANGE</div>`;
+                    } catch (e) { output.innerHTML += "<div>[ERR] CONNECTION_TIMEOUT</div>"; }
+                }
+
+                else if (cmd === "news") {
+                    output.innerHTML += "<div>[SCANNING_DECODED_FEEDS...]</div>";
+                    try {
+                        const res = await fetch('https://dev.to/api/articles?top=3');
+                        const articles = await res.json();
+                        let newsHTML = '<div class="radar-box">TOP_STORIES:<br>';
+                        articles.forEach(a => { newsHTML += `<div class="news-item">» ${a.title}</div>`; });
+                        newsHTML += '</div>';
+                        output.innerHTML += newsHTML;
+                    } catch (e) { output.innerHTML += "<div>[ERR] FEED_UNAVAILABLE</div>"; }
+                }
+
+                // 3. STORAGE & UTILITY
+                else if (cmd === "save") {
+                    if (!args) { output.innerHTML += "<div>[ERR] NO_DATA_INPUT</div>"; }
+                    else {
                         let notes = JSON.parse(localStorage.getItem('ghost_notes') || "[]");
                         notes.push({text: args, time: new Date().toLocaleString()});
                         localStorage.setItem('ghost_notes', JSON.stringify(notes));
-                        output.innerHTML += "<div>[SUCCESS] Data packet stored in local memory.</div>";
+                        output.innerHTML += "<div>[SUCCESS] Packet stored.</div>";
                     }
-                } else if (cmd === "notes") {
+                }
+
+                else if (cmd === "notes") {
                     let notes = JSON.parse(localStorage.getItem('ghost_notes') || "[]");
-                    if (notes.length === 0) {
-                        output.innerHTML += "<div>[EMPTY] No data packets found.</div>";
-                    } else {
-                        output.innerHTML += "<div>[RETRIEVING_DATA...]</div>";
+                    if (notes.length === 0) { output.innerHTML += "<div>[EMPTY]</div>"; }
+                    else {
                         notes.forEach((n, i) => {
-                            output.innerHTML += `<div class="note-item">${i+1}. ${n.text} <br><small style="color:#888">${n.time}</small></div>`;
+                            output.innerHTML += `<div class="note-item">${i+1}. ${n.text} <br><small style="color:#666">${n.time}</small></div>`;
                         });
                     }
-                } else if (cmd === "purge") {
-                    localStorage.removeItem('ghost_notes');
-                    output.innerHTML += "<div>[CLEANSED] Local database wiped.</div>";
-                } else if (cmd === "vault") {
-                    output.innerHTML += "<div>TRANSFURING TO VAULT...</div>";
-                    setTimeout(() => { window.location.href = "https://mrhaker-7.github.io/ghost-vault/"; }, 1000);
-                } else if (cmd === "clear") {
-                    output.innerHTML = "[SYSTEM_RELOADED]";
-                } else if (raw !== "") {
-                    output.innerHTML += `<div><span style="color:red">!</span> UNKNOWN_COMMAND: ${cmd}</div>`;
                 }
+
+                else if (cmd === "vault") {
+                    output.innerHTML += "<div>INITIATING_TRANSFER...</div>";
+                    setTimeout(() => { window.location.href = "https://mrhaker-7.github.io/ghost-vault/"; }, 800);
+                }
+
+                else if (cmd === "purge") {
+                    localStorage.removeItem('ghost_notes');
+                    output.innerHTML += "<div>[CLEANSED]</div>";
+                }
+
+                else if (cmd === "clear") { output.innerHTML = "[SYSTEM_RELOADED]"; }
+                else if (cmd === "help") { output.innerHTML += `<div>${helpMsg}</div>`; }
+                else if (raw !== "") { output.innerHTML += `<div><span style="color:red">!</span> UNKNOWN_CMD: ${cmd}</div>`; }
 
                 input.value = "";
                 window.scrollTo(0, document.body.scrollHeight);
