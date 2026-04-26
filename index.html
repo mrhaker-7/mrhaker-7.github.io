@@ -3,65 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHOST_TERMINAL | mrhaker-7</title>
+    <title>GHOST_OS | mrhaker-7</title>
     <style>
-        body { background-color: #050505; color: #00ff41; font-family: 'Courier New', monospace; padding: 20px; margin: 0; }
-        #terminal-output { white-space: pre-wrap; line-height: 1.4; margin-bottom: 10px; }
-        .prompt { color: #00ff41; font-weight: bold; margin-right: 10px; }
-        .input-line { display: flex; align-items: center; }
-        #user-input { background: transparent; border: none; color: #00ff41; font-family: inherit; font-size: inherit; outline: none; flex: 1; }
-        .error { color: #ff3333; }
-        .cmd-hint { color: #55ff55; font-weight: bold; }
+        body { background: #050505; color: #00ff41; font-family: 'Courier New', monospace; padding: 20px; margin: 0; }
+        #output { white-space: pre-wrap; line-height: 1.4; margin-bottom: 10px; }
+        .prompt { color: #00ff41; font-weight: bold; }
+        .line { display: flex; align-items: center; }
+        input { background: transparent; border: none; color: #00ff41; font-family: inherit; font-size: inherit; outline: none; flex: 1; }
+        .note-item { color: #ffff00; border-left: 2px solid #ffff00; padding-left: 10px; margin: 5px 0; }
+        .time { color: #00bbff; }
     </style>
 </head>
-<body onclick="document.getElementById('user-input').focus()">
+<body onclick="document.getElementById('in').focus()">
 
-    <div id="terminal-output">
-[SYSTEM INITIALIZED...]
-[USER: mrhaker-7 AUTHENTICATED]
--------------------------------
-Type <span class="cmd-hint">'help'</span> to begin.
+    <div id="output">
+[GHOST_OS V3.0 ONLINE]
+[LOCATION: MERU_SECTOR]
+-----------------------
+Type 'help' for power commands.
     </div>
 
-    <div class="input-line">
-        <span class="prompt">andy@ghost-system:~$</span>
-        <input type="text" id="user-input" autofocus autocomplete="off" spellcheck="false">
+    <div class="line">
+        <span class="prompt">andy@ghost:~$</span>
+        <input type="text" id="in" autofocus autocomplete="off" spellcheck="false">
     </div>
 
     <script>
-        const input = document.getElementById('user-input');
-        const output = document.getElementById('terminal-output');
+        const input = document.getElementById('in');
+        const output = document.getElementById('output');
 
-        // These are your system responses
-        const commands = {
-            "help": "SYSTEM_GUIDE: <br> - 'ls' : Show all projects <br> - 'whoami' : Identity check <br> - 'vault' : Open secure storage <br> - 'clear' : Wipe terminal",
-            "whoami": "ID: mrhaker-7 <br> RANK: System Architect <br> REGION: Meru_Sector_254 <br> STATUS: Coding...",
-            "ls": "RETRIEVING FILES... <br> [DIR] ghost-vault <br> [DIR] matrix-effect <br> [FILE] terminal-os.sys",
-            "vault": "INITIATING SECURE TRANSFER TO GHOST_VAULT... PLEASE WAIT."
-        };
+        const helpMsg = "POWER COMMANDS:<br> - <span class='time'>time</span> : Current System Time<br> - <span>save [text]</span> : Store a quick note<br> - <span>notes</span> : View all saved notes<br> - <span>purge</span> : Delete all notes<br> - <span>vault</span> : Secure Storage<br> - <span>clear</span> : Reset Screen";
 
         input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
-                const cmd = input.value.trim().toLowerCase();
+                const raw = input.value.trim();
+                const cmd = raw.split(' ')[0].toLowerCase();
+                const args = raw.substring(cmd.length).trim();
                 
-                // 1. Show your command on screen
-                output.innerHTML += `<div><span class="prompt">andy@ghost-system:~$</span> ${cmd}</div>`;
+                output.innerHTML += `<div><span class="prompt">andy@ghost:~$</span> ${raw}</div>`;
 
-                // 2. Handle the logic
-                if (cmd === "clear") {
-                    output.innerHTML = "[SYSTEM REBOOTED...]<br>Type 'help' for commands.";
+                if (cmd === "help") {
+                    output.innerHTML += `<div>${helpMsg}</div>`;
+                } else if (cmd === "time") {
+                    output.innerHTML += `<div class="time">${new Date().toLocaleString()}</div>`;
+                } else if (cmd === "save") {
+                    if (!args) {
+                        output.innerHTML += "<div>ERR: No text provided. Usage: save [note content]</div>";
+                    } else {
+                        let notes = JSON.parse(localStorage.getItem('ghost_notes') || "[]");
+                        notes.push({text: args, time: new Date().toLocaleString()});
+                        localStorage.setItem('ghost_notes', JSON.stringify(notes));
+                        output.innerHTML += "<div>[SUCCESS] Note synced to local database.</div>";
+                    }
+                } else if (cmd === "notes") {
+                    let notes = JSON.parse(localStorage.getItem('ghost_notes') || "[]");
+                    if (notes.length === 0) {
+                        output.innerHTML += "<div>Database empty.</div>";
+                    } else {
+                        notes.forEach((n, i) => {
+                            output.innerHTML += `<div class="note-item">${i+1}. ${n.text} <small>(${n.time})</small></div>`;
+                        });
+                    }
+                } else if (cmd === "purge") {
+                    localStorage.removeItem('ghost_notes');
+                    output.innerHTML += "<div>[CLEANSED] All notes deleted.</div>";
                 } else if (cmd === "vault") {
-                    output.innerHTML += `<div>${commands[cmd]}</div>`;
-                    setTimeout(() => {
-                        window.location.href = "https://mrhaker-7.github.io/ghost-vault/";
-                    }, 2000);
-                } else if (commands[cmd]) {
-                    output.innerHTML += `<div>${commands[cmd]}</div>`;
-                } else if (cmd !== "") {
-                    output.innerHTML += `<div><span class="error">COMMAND_NOT_FOUND:</span> ${cmd}</div>`;
+                    window.location.href = "https://mrhaker-7.github.io/ghost-vault/";
+                } else if (cmd === "clear") {
+                    output.innerHTML = "[SYSTEM REFRESHED]";
+                } else {
+                    output.innerHTML += "<div>COMMAND_UNKNOWN</div>";
                 }
 
-                // 3. Reset and scroll
                 input.value = "";
                 window.scrollTo(0, document.body.scrollHeight);
             }
