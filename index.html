@@ -14,13 +14,12 @@
         .note-item { color: #ffff00; border-left: 3px solid #ffff00; padding-left: 10px; margin: 8px 0; font-size: 14px; }
         .news-item { color: #00bbff; margin: 8px 0; font-size: 14px; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px; }
         .cmd-hint { color: #ffffff; background: #222; padding: 0 5px; border-radius: 3px; font-size: 12px; }
-        .rate-val { color: #ffff00; font-weight: bold; font-size: 1.2em; }
     </style>
 </head>
 <body onclick="document.getElementById('in').focus()">
 
     <div id="output">
-[GHOST_OS_v5.2_ULTIMATE_STABLE]
+[GHOST_OS_v5.6_ULTIMATE]
 [AUTHORIZED_USER: mrhaker-7]
 [RANK: SYSTEM_ARCHITECT]
 [LOCATION: MERU_SECTOR_254]
@@ -39,14 +38,14 @@ Type <span class="cmd-hint">help</span> to view the full command suite.
 
         const helpMsg = `
 SYSTEM_COMMANDS:
-- <span class="prompt">status</span> : Run diagnostics & check Uptime
-- <span class="prompt">time</span>   : Global Synchronized Clock
+- <span class="prompt">scan</span>   : Network Intelligence Radar (New)
 - <span class="prompt">rate</span>   : Live USD/KES Market Radar
 - <span class="prompt">news</span>   : Fetch Global Tech Headlines
-- <span class="prompt">save</span>   : Store private data [Usage: save text]
-- <span class="prompt">notes</span>  : Retrieve all stored data packets
-- <span class="prompt">vault</span>  : Secure Transfer to Ghost Vault
-- <span class="prompt">purge</span>  : Permanent Data Wipe
+- <span class="prompt">status</span> : Run Diagnostics & Uptime
+- <span class="prompt">time</span>   : Global Synchronized Clock
+- <span class="prompt">save</span>   : Store Data [Usage: save text]
+- <span class="prompt">notes</span>  : Retrieve Stored Packets
+- <span class="prompt">vault</span>  : Transfer to Ghost Vault
 - <span class="prompt">clear</span>  : Reboot Display`;
 
         input.addEventListener('keydown', async function(e) {
@@ -57,34 +56,34 @@ SYSTEM_COMMANDS:
                 
                 output.innerHTML += `<div><span class="prompt">andy@ghost:~$</span> ${raw}</div>`;
 
-                // 1. IDENTITY & DIAGNOSTICS
-                if (cmd === "status") {
-                    output.innerHTML += `
-<div class="radar-box" style="color: #00bbff; border-color: #00bbff;">
-[DIAGNOSTICS]
-> NETWORK: ${navigator.onLine ? "ENCRYPTED_ONLINE" : "OFFLINE_MODE"}
-> DEVICE:  ${navigator.platform}
-> UPTIME:  ${Math.floor(performance.now() / 1000)}s
-> STATUS:  SYSTEM_OPTIMAL
+                // 1. THE NEW NETWORK SCAN
+                if (cmd === "scan") {
+                    output.innerHTML += "<div>[INITIATING_NETWORK_TRACE...]</div>";
+                    try {
+                        const res = await fetch('https://ipapi.co/json/');
+                        const data = await res.json();
+                        output.innerHTML += `
+<div class="radar-box" style="border-color: #ff00ff; color: #ff00ff;">
+[NETWORK_TRACE_RESULTS]
+> PUBLIC_IP: ${data.ip}
+> PROVIDER:  ${data.org}
+> REGION:    ${data.city}, ${data.country_name}
+> STATUS:    TRACE_COMPLETE
 </div>`;
-                } 
-
-                else if (cmd === "time") {
-                    const now = new Date();
-                    output.innerHTML += `<div class="radar-box">[CLOCK] ${now.toLocaleTimeString()}<br>${now.toDateString()}</div>`;
+                    } catch (e) { output.innerHTML += "<div>[ERR] TRACE_INTERRUPTED</div>"; }
                 }
 
-                // 2. LIVE DATA RADAR (APIs)
+                // 2. LIVE MARKET RADAR
                 else if (cmd === "rate") {
-                    output.innerHTML += "<div>[CONNECTING_TO_FINANCIAL_MARKETS...]</div>";
+                    output.innerHTML += "<div>[CONNECTING_TO_MARKETS...]</div>";
                     try {
                         const res = await fetch('https://open.er-api.com/v6/latest/USD');
                         const data = await res.json();
-                        const ksh = data.rates.KES.toFixed(2);
-                        output.innerHTML += `<div class="radar-box">BASE: 1 USD<br>MARKET: <span class="rate-val">${ksh} KES</span><br>SOURCE: GLOBAL_EXCHANGE</div>`;
-                    } catch (e) { output.innerHTML += "<div>[ERR] CONNECTION_TIMEOUT</div>"; }
+                        output.innerHTML += `<div class="radar-box">BASE: 1 USD<br>MARKET: <span style="color:#ffff00">${data.rates.KES.toFixed(2)} KES</span></div>`;
+                    } catch (e) { output.innerHTML += "<div>[ERR] MARKET_OFFLINE</div>"; }
                 }
 
+                // 3. NEWS FEED
                 else if (cmd === "news") {
                     output.innerHTML += "<div>[SCANNING_DECODED_FEEDS...]</div>";
                     try {
@@ -97,7 +96,7 @@ SYSTEM_COMMANDS:
                     } catch (e) { output.innerHTML += "<div>[ERR] FEED_UNAVAILABLE</div>"; }
                 }
 
-                // 3. STORAGE & UTILITY
+                // 4. PERSISTENT STORAGE
                 else if (cmd === "save") {
                     if (!args) { output.innerHTML += "<div>[ERR] NO_DATA_INPUT</div>"; }
                     else {
@@ -118,19 +117,20 @@ SYSTEM_COMMANDS:
                     }
                 }
 
+                // 5. UTILITIES
+                else if (cmd === "status") {
+                    output.innerHTML += `<div class="radar-box" style="color: #00bbff; border-color: #00bbff;">UPTIME: ${Math.floor(performance.now() / 1000)}s<br>OS: ${navigator.platform}</div>`;
+                }
+                else if (cmd === "time") {
+                    const now = new Date();
+                    output.innerHTML += `<div class="radar-box">[CLOCK] ${now.toLocaleTimeString()}</div>`;
+                }
                 else if (cmd === "vault") {
-                    output.innerHTML += "<div>INITIATING_TRANSFER...</div>";
-                    setTimeout(() => { window.location.href = "https://mrhaker-7.github.io/ghost-vault/"; }, 800);
+                    window.location.href = "https://mrhaker-7.github.io/ghost-vault/";
                 }
-
-                else if (cmd === "purge") {
-                    localStorage.removeItem('ghost_notes');
-                    output.innerHTML += "<div>[CLEANSED]</div>";
-                }
-
                 else if (cmd === "clear") { output.innerHTML = "[SYSTEM_RELOADED]"; }
                 else if (cmd === "help") { output.innerHTML += `<div>${helpMsg}</div>`; }
-                else if (raw !== "") { output.innerHTML += `<div><span style="color:red">!</span> UNKNOWN_CMD: ${cmd}</div>`; }
+                else if (raw !== "") { output.innerHTML += `<div>UNKNOWN_CMD: ${cmd}</div>`; }
 
                 input.value = "";
                 window.scrollTo(0, document.body.scrollHeight);
