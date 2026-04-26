@@ -5,46 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GHOST_TERMINAL | mrhaker-7</title>
     <style>
-        body {
-            background-color: #050505;
-            color: #00ff41;
-            font-family: 'Courier New', Courier, monospace;
-            padding: 20px;
-            margin: 0;
-            overflow-x: hidden;
-        }
-
-        #terminal-output {
-            white-space: pre-wrap;
-            margin-bottom: 10px;
-            line-height: 1.4;
-            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
-        }
-
-        .input-line {
-            display: flex;
-            align-items: center;
-        }
-
-        .prompt {
-            color: #00ff41;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-
-        #user-input {
-            background: transparent;
-            border: none;
-            color: #00ff41;
-            font-family: inherit;
-            font-size: inherit;
-            outline: none;
-            flex: 1;
-            caret-color: #00ff41;
-        }
-
-        .system-msg { color: #888; font-size: 12px; }
-        .cmd-list { color: #55ff55; }
+        body { background-color: #050505; color: #00ff41; font-family: 'Courier New', monospace; padding: 20px; margin: 0; }
+        #terminal-output { white-space: pre-wrap; line-height: 1.4; margin-bottom: 10px; }
+        .prompt { color: #00ff41; font-weight: bold; margin-right: 10px; }
+        .input-line { display: flex; align-items: center; }
+        #user-input { background: transparent; border: none; color: #00ff41; font-family: inherit; font-size: inherit; outline: none; flex: 1; }
+        .error { color: #ff3333; }
+        .cmd-hint { color: #55ff55; font-weight: bold; }
     </style>
 </head>
 <body onclick="document.getElementById('user-input').focus()">
@@ -52,7 +19,8 @@
     <div id="terminal-output">
 [SYSTEM INITIALIZED...]
 [USER: mrhaker-7 AUTHENTICATED]
-Type 'help' to see available commands.
+-------------------------------
+Type <span class="cmd-hint">'help'</span> to begin.
     </div>
 
     <div class="input-line">
@@ -64,39 +32,38 @@ Type 'help' to see available commands.
         const input = document.getElementById('user-input');
         const output = document.getElementById('terminal-output');
 
-        // This is the "Brain" of your terminal
+        // These are your system responses
         const commands = {
-            "help": "Available commands: <br> - <span class='cmd-list'>ls</span>: List projects <br> - <span class='cmd-list'>whoami</span>: Bio <br> - <span class='cmd-list'>vault</span>: Open Ghost Vault <br> - <span class='cmd-list'>clear</span>: Wipe screen",
-            "whoami": "User: mrhaker-7<br>Status: Independent Developer<br>Location: Meru, Kenya<br>Specialty: Security & Web UI",
-            "ls": "Directory: /projects <br> 1. ghost-vault (SECURE) <br> 2. matrix-rain (ACTIVE) <br> 3. perfume-paradise (SHOP)",
-            "vault": "REDIRECTING TO SECURE VAULT...",
-            "clear": ""
+            "help": "SYSTEM_GUIDE: <br> - 'ls' : Show all projects <br> - 'whoami' : Identity check <br> - 'vault' : Open secure storage <br> - 'clear' : Wipe terminal",
+            "whoami": "ID: mrhaker-7 <br> RANK: System Architect <br> REGION: Meru_Sector_254 <br> STATUS: Coding...",
+            "ls": "RETRIEVING FILES... <br> [DIR] ghost-vault <br> [DIR] matrix-effect <br> [FILE] terminal-os.sys",
+            "vault": "INITIATING SECURE TRANSFER TO GHOST_VAULT... PLEASE WAIT."
         };
 
         input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
-                const fullInput = input.value.trim().toLowerCase();
+                const cmd = input.value.trim().toLowerCase();
                 
-                // 1. Show the user what they typed
-                output.innerHTML += `<div class="prompt">andy@ghost-system:~$ ${fullInput}</div>`;
+                // 1. Show your command on screen
+                output.innerHTML += `<div><span class="prompt">andy@ghost-system:~$</span> ${cmd}</div>`;
 
-                // 2. Process the command
-                if (fullInput === "clear") {
-                    output.innerHTML = "";
-                } else if (fullInput === "vault") {
+                // 2. Handle the logic
+                if (cmd === "clear") {
+                    output.innerHTML = "[SYSTEM REBOOTED...]<br>Type 'help' for commands.";
+                } else if (cmd === "vault") {
+                    output.innerHTML += `<div>${commands[cmd]}</div>`;
                     setTimeout(() => {
                         window.location.href = "https://mrhaker-7.github.io/ghost-vault/";
-                    }, 1000);
-                    output.innerHTML += `<div>${commands[fullInput]}</div>`;
-                } else if (commands[fullInput]) {
-                    output.innerHTML += `<div>${commands[fullInput]}</div>`;
-                } else {
-                    output.innerHTML += `<div><span style="color:red">Error:</span> Command '${fullInput}' not found. Type 'help' for options.</div>`;
+                    }, 2000);
+                } else if (commands[cmd]) {
+                    output.innerHTML += `<div>${commands[cmd]}</div>`;
+                } else if (cmd !== "") {
+                    output.innerHTML += `<div><span class="error">COMMAND_NOT_FOUND:</span> ${cmd}</div>`;
                 }
 
-                // 3. Scroll to bottom and reset input
-                window.scrollTo(0, document.body.scrollHeight);
+                // 3. Reset and scroll
                 input.value = "";
+                window.scrollTo(0, document.body.scrollHeight);
             }
         });
     </script>
