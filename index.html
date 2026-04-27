@@ -5,30 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GHOST_OS | Intelligence Terminal</title>
     <style>
+        /* Pro Hacker Styling */
         body {
             background-color: #050505;
             color: #00FF41;
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
             padding: 20px;
-            height: 90vh;
+            height: 92vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
+
         #terminal {
             flex-grow: 1;
             overflow-y: auto;
             margin-bottom: 20px;
-            border: 1px solid #111;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.9);
-            box-shadow: 0 0 10px rgba(0, 255, 65, 0.1);
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid #1a1a1a;
+            box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.05);
         }
+
+        /* Custom Scrollbar */
+        #terminal::-webkit-scrollbar { width: 6px; }
+        #terminal::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 10px; }
+
         .input-line {
             display: flex;
-            border-top: 1px solid #111;
-            padding-top: 10px;
+            align-items: center;
+            background: #000;
+            padding: 10px;
+            border: 1px solid #1a1a1a;
         }
+
         #command-input {
             background: transparent;
             border: none;
@@ -37,18 +48,23 @@
             font-size: 1.1em;
             outline: none;
             flex-grow: 1;
-            margin-left: 10px;
+            margin-left: 12px;
         }
+
+        /* Typography */
+        .system { color: #ffffff; font-weight: bold; text-transform: uppercase; }
         .error { color: #FF3131; }
-        .system { color: #ffffff; font-weight: bold; }
+        .success { color: #00FF41; text-shadow: 0 0 5px rgba(0, 255, 65, 0.5); }
         .dim { color: #555; }
+        .cmd-text { color: #888; }
     </style>
 </head>
 <body>
 
 <div id="terminal">
-    <p class="system">[BOOT]: GHOST_OS INTELLIGENCE SYSTEM v1.0.4</p>
-    <p class="system">[STATUS]: CONNECTING TO CLOUD SATELLITE...</p>
+    <p class="system">--- GHOST INTELLIGENCE SYSTEMS v1.0.4 ---</p>
+    <p class="dim">[SECURE BOOT SEQUENCE INITIATED...]</p>
+    <p class="dim">[SATELLITE UPLINK: CONNECTED]</p>
 </div>
 
 <div class="input-line">
@@ -58,8 +74,9 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+    // PROJECT CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyB4a-n2SG7SXYAmc7preydTChKYphkzpxo",
         authDomain: "ghost-os-8f445.firebaseapp.com",
@@ -69,62 +86,72 @@
         appId: "1:1097985809108:web:45eddccb18d9b8e409b941"
     };
 
-    // Start App
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
     const output = document.getElementById('terminal');
     const input = document.getElementById('command-input');
 
-    function log(msg, color = "#00FF41") {
+    function log(msg, className = "") {
         const p = document.createElement('p');
-        p.style.color = color;
+        if (className) p.className = className;
         p.innerText = msg;
         output.appendChild(p);
         output.scrollTop = output.scrollHeight;
     }
 
-    // Monitor User
+    // Auth Watcher
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            log(`[AUTH]: SECURE CONNECTION ESTABLISHED. WELCOME ${user.email.toUpperCase()}`, "#00FF41");
+            log(`[AUTH]: ENCRYPTION KEY VALID. WELCOME, ${user.email.toUpperCase()}`, "success");
         } else {
-            log("[AUTH]: SYSTEM ENCRYPTED. USE 'signup' OR 'login' TO DECRYPT.", "#FF3131");
+            log("[AUTH]: SYSTEM LOCKED. PLEASE LOGIN OR SIGNUP TO PROCEED.", "error");
         }
     });
 
-    // Command Handler
+    // Main Engine
     input.addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') {
-            const fullCmd = input.value.trim();
-            if (!fullCmd) return;
-            
-            log(`> ${fullCmd}`, "#555");
+            const rawValue = input.value.trim();
+            if (!rawValue) return;
+
+            log(`> ${rawValue}`, "cmd-text");
             input.value = '';
 
-            const parts = fullCmd.split(' ');
+            const parts = rawValue.split(/\s+/);
             const cmd = parts[0].toLowerCase();
             const email = parts[1];
             const pass = parts[2];
 
             try {
                 if (cmd === 'signup') {
-                    if (!email || !pass) throw new Error("Format: signup email password");
+                    if (!email || !pass) throw new Error("USAGE: signup [email] [password]");
                     await createUserWithEmailAndPassword(auth, email, pass);
-                    log("[SUCCESS]: ACCOUNT REGISTERED ON GLOBAL SERVERS.", "white");
+                    log("[SUCCESS]: CLOUD IDENTITY CREATED.", "system");
                 } 
                 else if (cmd === 'login') {
-                    if (!email || !pass) throw new Error("Format: login email password");
+                    if (!email || !pass) throw new Error("USAGE: login [email] [password]");
                     await signInWithEmailAndPassword(auth, email, pass);
-                    log("[SUCCESS]: ACCESS GRANTED.", "white");
+                    log("[SUCCESS]: ACCESS GRANTED. DATABASE DECRYPTED.", "system");
                 } 
+                else if (cmd === 'logout') {
+                    await signOut(auth);
+                    log("[SYSTEM]: DISCONNECTED FROM SERVER.", "dim");
+                }
                 else if (cmd === 'clear') {
-                    output.innerHTML = '';
-                } 
+                    output.innerHTML = '<p class="system">--- TERMINAL PURGED ---</p>';
+                }
+                else if (cmd === 'help') {
+                    log("AVAILABLE COMMANDS:", "system");
+                    log(" - signup [email] [pass] : Create cloud account");
+                    log(" - login [email] [pass]  : Access encrypted OS");
+                    log(" - logout                : End session");
+                    log(" - clear                 : Wipe screen");
+                }
                 else {
-                    log(`[GHOST]: COMMAND '${cmd}' NOT FOUND.`, "white");
+                    log(`[GHOST]: '${cmd}' NOT RECOGNIZED. TYPE 'help' FOR CMDS.`, "error");
                 }
             } catch (err) {
-                log(`[CRITICAL]: ${err.message}`, "#FF3131");
+                log(`[!] CRITICAL: ${err.message}`, "error");
             }
         }
     });
