@@ -3,158 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHOST_OS | Intelligence Terminal</title>
+    <title>Ghost_OS Intelligence</title>
     <style>
-        /* Pro Hacker Styling */
         body {
-            background-color: #050505;
+            background-color: #0d0208;
             color: #00FF41;
             font-family: 'Courier New', Courier, monospace;
             margin: 0;
             padding: 20px;
-            height: 92vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            height: 95vh;
         }
-
-        #terminal {
+        #terminal-output {
             flex-grow: 1;
             overflow-y: auto;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.95);
-            border: 1px solid #1a1a1a;
-            box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.05);
+            margin-bottom: 10px;
+            white-space: pre-wrap;
         }
-
-        /* Custom Scrollbar */
-        #terminal::-webkit-scrollbar { width: 6px; }
-        #terminal::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 10px; }
-
         .input-line {
             display: flex;
             align-items: center;
-            background: #000;
-            padding: 10px;
-            border: 1px solid #1a1a1a;
         }
-
         #command-input {
             background: transparent;
             border: none;
             color: #00FF41;
             font-family: inherit;
-            font-size: 1.1em;
+            font-size: inherit;
             outline: none;
             flex-grow: 1;
-            margin-left: 12px;
+            padding-left: 10px;
         }
-
-        /* Typography */
-        .system { color: #ffffff; font-weight: bold; text-transform: uppercase; }
-        .error { color: #FF3131; }
-        .success { color: #00FF41; text-shadow: 0 0 5px rgba(0, 255, 65, 0.5); }
-        .dim { color: #555; }
-        .cmd-text { color: #888; }
     </style>
 </head>
 <body>
 
-<div id="terminal">
-    <p class="system">--- GHOST INTELLIGENCE SYSTEMS v1.0.4 ---</p>
-    <p class="dim">[SECURE BOOT SEQUENCE INITIATED...]</p>
-    <p class="dim">[SATELLITE UPLINK: CONNECTED]</p>
-</div>
+    <div id="terminal-output">
+        <p>[SYSTEM]: GHOST_OS INITIALIZED. READY FOR INPUT.</p>
+    </div>
 
-<div class="input-line">
-    <span>GHOST_OS ></span>
-    <input type="text" id="command-input" autofocus autocomplete="off">
-</div>
+    <div class="input-line">
+        <span>GHOST_OS ></span>
+        <input type="text" id="command-input" autofocus autocomplete="off">
+    </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // PROJECT CONFIG
-    const firebaseConfig = {
-        apiKey: "AIzaSyB4a-n2SG7SXYAmc7preydTChKYphkzpxo",
-        authDomain: "ghost-os-8f445.firebaseapp.com",
-        projectId: "ghost-os-8f445",
-        storageBucket: "ghost-os-8f445.firebasestorage.app",
-        messagingSenderId: "1097985809108",
-        appId: "1:1097985809108:web:45eddccb18d9b8e409b941"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyB4a-n2SG7SXYAmc7preydTChKYphkzpxo",
+            authDomain: "ghost-os-8f445.firebaseapp.com",
+            projectId: "ghost-os-8f445",
+            storageBucket: "ghost-os-8f445.firebasestorage.app",
+            messagingSenderId: "1097985809108",
+            appId: "1:1097985809108:web:45eddccb18d9b8e409b941"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const output = document.getElementById('terminal');
-    const input = document.getElementById('command-input');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const terminal = document.getElementById('terminal-output');
+        const inputField = document.getElementById('command-input');
 
-    function log(msg, className = "") {
-        const p = document.createElement('p');
-        if (className) p.className = className;
-        p.innerText = msg;
-        output.appendChild(p);
-        output.scrollTop = output.scrollHeight;
-    }
-
-    // Auth Watcher
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            log(`[AUTH]: ENCRYPTION KEY VALID. WELCOME, ${user.email.toUpperCase()}`, "success");
-        } else {
-            log("[AUTH]: SYSTEM LOCKED. PLEASE LOGIN OR SIGNUP TO PROCEED.", "error");
+        function print(text, color = "#00FF41") {
+            const p = document.createElement('p');
+            p.style.color = color;
+            p.innerText = text;
+            terminal.appendChild(p);
+            terminal.scrollTop = terminal.scrollHeight;
         }
-    });
 
-    // Main Engine
-    input.addEventListener('keydown', async (e) => {
-        if (e.key === 'Enter') {
-            const rawValue = input.value.trim();
-            if (!rawValue) return;
-
-            log(`> ${rawValue}`, "cmd-text");
-            input.value = '';
-
-            const parts = rawValue.split(/\s+/);
-            const cmd = parts[0].toLowerCase();
-            const email = parts[1];
-            const pass = parts[2];
-
-            try {
-                if (cmd === 'signup') {
-                    if (!email || !pass) throw new Error("USAGE: signup [email] [password]");
-                    await createUserWithEmailAndPassword(auth, email, pass);
-                    log("[SUCCESS]: CLOUD IDENTITY CREATED.", "system");
-                } 
-                else if (cmd === 'login') {
-                    if (!email || !pass) throw new Error("USAGE: login [email] [password]");
-                    await signInWithEmailAndPassword(auth, email, pass);
-                    log("[SUCCESS]: ACCESS GRANTED. DATABASE DECRYPTED.", "system");
-                } 
-                else if (cmd === 'logout') {
-                    await signOut(auth);
-                    log("[SYSTEM]: DISCONNECTED FROM SERVER.", "dim");
-                }
-                else if (cmd === 'clear') {
-                    output.innerHTML = '<p class="system">--- TERMINAL PURGED ---</p>';
-                }
-                else if (cmd === 'help') {
-                    log("AVAILABLE COMMANDS:", "system");
-                    log(" - signup [email] [pass] : Create cloud account");
-                    log(" - login [email] [pass]  : Access encrypted OS");
-                    log(" - logout                : End session");
-                    log(" - clear                 : Wipe screen");
-                }
-                else {
-                    log(`[GHOST]: '${cmd}' NOT RECOGNIZED. TYPE 'help' FOR CMDS.`, "error");
-                }
-            } catch (err) {
-                log(`[!] CRITICAL: ${err.message}`, "error");
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                print(`[ACCESS]: Welcome back, ${user.email}`);
+            } else {
+                print("[SYSTEM]: ENCRYPTED. Type 'signup email pass' or 'login email pass'.", "#FF3131");
             }
-        }
-    });
-</script>
+        });
+
+        // The "Enter" key fix for laptops/phones
+        inputField.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                const val = inputField.value.trim();
+                if (!val) return;
+
+                print(`> ${val}`, "#555");
+                inputField.value = '';
+
+                const args = val.split(/\s+/);
+                const cmd = args[0].toLowerCase();
+
+                try {
+                    if (cmd === 'signup') {
+                        await createUserWithEmailAndPassword(auth, args[1], args[2]);
+                        print("[SUCCESS]: Account Registered.");
+                    } else if (cmd === 'login') {
+                        await signInWithEmailAndPassword(auth, args[1], args[2]);
+                        print("[SUCCESS]: Access Granted.");
+                    } else if (cmd === 'help') {
+                        print("AVAILABLE: signup [email] [pass], login [email] [pass], clear");
+                    } else if (cmd === 'clear') {
+                        terminal.innerHTML = '';
+                    } else {
+                        print(`[GHOST]: '${cmd}' not recognized. Type 'help'.`);
+                    }
+                } catch (err) {
+                    print(`[ERROR]: ${err.message}`, "#FF3131");
+                }
+            }
+        });
+    </script>
 </body>
 </html>
