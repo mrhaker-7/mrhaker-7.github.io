@@ -28,86 +28,97 @@ RESTRICTED ACCESS. Type <span style="color:#fff">login [password]</span> to proc
     <div class="line">
         <span id="terminal-prompt" class="prompt">guest@ghost:~$</span>
         <input type="text" id="in" autofocus autocomplete="off" spellcheck="false">
-    </div>
+    </div> 
+  <script type="module">
+    // 1. Import Firebase Security from Google
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    <script>
-        const input = document.getElementById('in');
-        const output = document.getElementById('output');
-        const sysStatus = document.getElementById('sys-status');
-        const prompt = document.getElementById('terminal-prompt');
+    // 2. YOUR UPDATED CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyB4a-n2SG7SXYAmc7preydTChKYphkzpxo",
+        authDomain: "ghost-os-8f445.firebaseapp.com",
+        projectId: "ghost-os-8f445",
+        storageBucket: "ghost-os-8f445.firebasestorage.app",
+        messagingSenderId: "1097985809108",
+        appId: "1:1097985809108:web:45eddccb18d9b8e409b941"
+    };
 
-        let isAuthenticated = false;
+    // 3. Start Connection
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    let currentUser = null;
 
-        input.addEventListener('keydown', async function(e) {
-            if (e.key === 'Enter') {
-                const raw = input.value.trim();
-                const cmd = raw.split(' ')[0].toLowerCase();
-                const args = raw.substring(cmd.length).trim();
-                
-                output.innerHTML += `<div><span class="prompt">${prompt.innerText}</span> ${raw}</div>`;
+    const terminal = document.getElementById('terminal-output');
+    const inputField = document.getElementById('command-input');
 
-                // --- LOGIN LOGIC ---
-                if (cmd === "login") {
-                    if (args === "ghost7") {
-                        isAuthenticated = true;
-                        sysStatus.innerText = "AUTHORIZED";
-                        sysStatus.className = "unlocked";
-                        prompt.innerText = "mrhaker-7@ghost:~$";
-                        output.innerHTML += "<div>[ACCESS_GRANTED] Welcome back, Architect.</div>";
-                    } else {
-                        output.innerHTML += "<div class='locked'>[ACCESS_DENIED] INVALID_CREDENTIALS</div>";
-                    }
-                }
+    // Monitor Login Status
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            printToTerminal(`[SYSTEM]: Access Granted. Welcome, Architect (${user.email})`, "#00FF41");
+        } else {
+            currentUser = null;
+            printToTerminal("[SYSTEM]: GHOST_OS Locked. Use 'signup' or 'login'.", "#FF3131");
+        }
+    });
 
-                // --- PROTECTED COMMANDS ---
-                else if (!isAuthenticated) {
-                    output.innerHTML += "<div class='locked'>[ERR] AUTH_REQUIRED. Please login first.</div>";
-                }
+    // COMMAND PROCESSOR
+    async function processCommand(cmd) {
+        const args = cmd.split(' ');
+        const command = args[0].toLowerCase();
 
-                else if (cmd === "scan") {
-                    output.innerHTML += "<div>[TRACING...]</div>";
-                    try {
-                        const res = await fetch('https://ipapi.co/json/');
-                        const data = await res.json();
-                        output.innerHTML += `<div class="radar-box">IP: ${data.ip}<br>ISP: ${data.org}</div>`;
-                    } catch (e) { output.innerHTML += "<div>[ERR]</div>"; }
-                }
-
-                else if (cmd === "rate") {
-                    const res = await fetch('https://open.er-api.com/v6/latest/USD');
-                    const data = await res.json();
-                    output.innerHTML += `<div class="radar-box">1 USD = ${data.rates.KES.toFixed(2)} KES</div>`;
-                }
-
-                else if (cmd === "save") {
-                    let notes = JSON.parse(localStorage.getItem('ghost_notes') || "[]");
-                    notes.push({text: args, time: new Date().toLocaleString()});
-                    localStorage.setItem('ghost_notes', JSON.stringify(notes));
-                    output.innerHTML += "<div>[SAVED]</div>";
-                }
-
-                else if (cmd === "notes") {
-                    let notes = JSON.parse(localStorage.getItem('ghost_notes') || "[]");
-                    notes.forEach((n, i) => { output.innerHTML += `<div style="color:#ffff00">${i+1}. ${n.text}</div>`; });
-                }
-
-                else if (cmd === "logout") {
-                    isAuthenticated = false;
-                    sysStatus.innerText = "LOCKED";
-                    sysStatus.className = "locked";
-                    prompt.innerText = "guest@ghost:~$";
-                    output.innerHTML += "<div>[LOGGED_OUT] Session terminated.</div>";
-                }
-
-                else if (cmd === "clear") { output.innerHTML = "[SYSTEM_RELOADED]"; }
-                else if (cmd === "help") {
-                    output.innerHTML += "<div>PUBLIC: login<br>PRIVATE: scan, rate, save, notes, logout, clear</div>";
-                }
-
-                input.value = "";
-                window.scrollTo(0, document.body.scrollHeight);
+        if (command === 'signup') {
+            const email = args[1];
+            const pass = args[2];
+            if(!email || !pass) return printToTerminal("[ERROR]: Use 'signup email password'", "orange");
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+                printToTerminal(`[SUCCESS]: Account created for ${email}`, "#00FF41");
+            } catch (err) {
+                printToTerminal(`[ERROR]: ${err.message}`, "#FF3131");
             }
-        });
-    </script>
-</body>
-</html>
+        } 
+        
+        else if (command === 'login') {
+            const email = args[1];
+            const pass = args[2];
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                printToTerminal(`[SUCCESS]: System Decrypted. Welcome back.`, "#00FF41");
+            } catch (err) {
+                printToTerminal(`[ERROR]: Access Denied. Check credentials.`, "#FF3131");
+            }
+        }
+
+        else if (command === 'logout') {
+            await signOut(auth);
+            printToTerminal("[SYSTEM]: Connection Terminated.", "yellow");
+        }
+
+        else if (command === 'clear') {
+            terminal.innerHTML = '';
+        }
+        
+        else {
+            printToTerminal(`[GHOST]: '${command}' is not a recognized internal command.`, "white");
+        }
+    }
+
+    function printToTerminal(text, color) {
+        const p = document.createElement('p');
+        p.style.color = color;
+        p.innerText = text;
+        terminal.appendChild(p);
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const cmd = inputField.value;
+            printToTerminal(`> ${cmd}`, "#555");
+            processCommand(cmd);
+            inputField.value = '';
+        }
+    });
+</script> 
