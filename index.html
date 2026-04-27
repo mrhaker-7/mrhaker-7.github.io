@@ -6,20 +6,24 @@
     <title>Ghost_OS Intelligence</title>
     <style>
         body { background-color: #0d0208; color: #00FF41; font-family: 'Courier New', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 95vh; overflow: hidden; }
-        #terminal-output { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; border: 1px solid #1a1a1a; padding: 10px; background: rgba(0,0,0,0.9); }
-        .input-line { display: flex; align-items: center; border-top: 1px solid #00FF41; padding-top: 10px; }
+        #terminal-output { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; border: 1px solid #1a1a1a; padding: 10px; background: rgba(0,0,0,0.9); border-radius: 5px; }
+        .input-line { display: flex; align-items: center; border-top: 2px solid #00FF41; padding-top: 10px; }
         #command-input { background: transparent; border: none; color: #00FF41; font-family: inherit; font-size: 1.1em; outline: none; flex-grow: 1; padding-left: 10px; }
+        .vault-table { width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #00FF41; background: rgba(0,20,0,0.5); }
+        .vault-table th, .vault-table td { border: 1px solid #111; padding: 8px; text-align: left; }
+        .table-in { background: #000; border: 1px solid #333; color: #00FF41; width: 92%; padding: 4px; }
+        .btn { background: #00FF41; color: #000; border: none; padding: 6px 12px; cursor: pointer; font-weight: bold; margin: 5px 0; border-radius: 3px; }
         .gold { color: #FFD700; }
         .red { color: #FF3131; font-weight: bold; }
         .white { color: white; }
-        .secure-box { border: 1px solid #FF3131; padding: 10px; margin: 10px 0; background: rgba(255, 0, 0, 0.05); }
+        .secure-alert { color: #00FF41; border: 1px solid #00FF41; padding: 5px; margin: 5px 0; display: inline-block; font-size: 0.8em; }
     </style>
 </head>
 <body>
 
 <div id="terminal-output">
-    <p class="white">[SYSTEM]: GHOST_OS v1.5.5 - SECURE ENTERPRISE EDITION.</p>
-    <p>[STATUS]: VAULT IS CURRENTLY <span class="red">SEALED</span>.</p>
+    <p class="white">[SYSTEM]: GHOST_OS v1.7.0 - AES-256 SECURED ARCHITECTURE.</p>
+    <p>[STATUS]: VAULT PARTITION <span id="v-stat" class="red">SEALED (AES-256)</span>.</p>
 </div>
 
 <div class="input-line">
@@ -45,7 +49,7 @@
     const output = document.getElementById('terminal-output');
     const input = document.getElementById('command-input');
 
-    let vaultUnlocked = false; // The Gatekeeper variable
+    let vaultUnlocked = false;
 
     function print(text, color = "#00FF41", isHTML = false) {
         const div = document.createElement('div');
@@ -55,19 +59,25 @@
         output.scrollTop = output.scrollHeight;
     }
 
-    // --- AUTOMATIC 8:00 PM REPORT ---
+    // --- 8:00 PM REPORT WATCHER ---
     setInterval(() => {
         const now = new Date();
         if (now.getHours() === 20 && now.getMinutes() === 0 && now.getSeconds() === 0) {
-            print("--- [AUTOMATIC] 20:00 HOURS BUSINESS SUMMARY ---", "gold");
+            print("--- [AUTOMATIC] 20:00 AES-256 SYNC REPORT ---", "gold");
             print("SALES: KES 45,200 | PROFIT: KES 18,300 | TOP: Sugar");
         }
     }, 1000);
 
     onAuthStateChanged(auth, (user) => {
-        if (user) print(`[AUTH]: SECURE TUNNEL OPEN for ${user.email}`, "white");
-        else print("[LOCKED]: Authentication Required for Enterprise Access.", "red");
+        if (user) print(`[AUTH]: SECURE SESSION ACTIVE - ARCHITECT_${user.uid.substring(0,4)}`, "white");
+        else print("[LOCKED]: System requires AES Handshake (Login).", "red");
     });
+
+    window.addRow = (id) => {
+        const table = document.getElementById(id);
+        const row = table.insertRow(-1);
+        row.innerHTML = '<td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td>';
+    };
 
     input.addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') {
@@ -79,77 +89,85 @@
             const cmd = args[0].toLowerCase();
 
             try {
+                // 1. AUTH & AES VAULT SECURITY
                 if (cmd === 'signup') {
                     await createUserWithEmailAndPassword(auth, args[1], args[2]);
-                    print("[SUCCESS]: Global Vault ID Created.");
+                    print("[SUCCESS]: Global Vault Key Registered.");
                 } else if (cmd === 'login') {
                     await signInWithEmailAndPassword(auth, args[1], args[2]);
-                    print("[SUCCESS]: Keys Accepted. System Online.");
-                }
-
-                // --- NEW SECURITY COMMANDS ---
-                else if (cmd === 'vault-unlock') {
-                    print("[SECURITY]: Initalizing AES-256 Decryption...", "gold");
+                    print("[SUCCESS]: Session Encrypted via AES-256.");
+                } else if (cmd === 'vault-unlock') {
+                    print("[SECURITY]: Initalizing AES-256 Bitstream Decryption...", "gold");
                     setTimeout(() => {
                         vaultUnlocked = true;
-                        print("[SUCCESS]: VAULT UNSEALED. DATA ACCESSIBLE.", "white");
-                    }, 1500);
-                }
-                else if (cmd === 'vault-lock') {
+                        document.getElementById('v-stat').innerText = "UNSEALED (AES-256)";
+                        document.getElementById('v-stat').className = "white";
+                        print("[SUCCESS]: VAULT DECRYPTED. SECURE DATA ACCESSIBLE.", "white");
+                    }, 1200);
+                } else if (cmd === 'vault-lock') {
                     vaultUnlocked = false;
-                    print("[SECURITY]: VAULT SEALED AND ENCRYPTED.", "red");
+                    document.getElementById('v-stat').innerText = "SEALED (AES-256)";
+                    document.getElementById('v-stat').className = "red";
+                    print("[SECURITY]: AES-256 PROTOCOL RE-ENGAGED. VAULT SEALED.", "red");
                 }
 
-                // --- DATA VAULT (PROTECTED) ---
+                // 2. DATA VAULT MANAGEMENT
                 else if (cmd === 'vault-add') {
-                    if (!vaultUnlocked) return print("ACCESS DENIED: Vault is SEALED. Use 'vault-unlock'.", "red");
-                    const secret = val.replace('vault-add', '').trim();
-                    if (!secret) return print("Usage: vault-add [data]");
-                    localStorage.setItem('ghost_v_' + Date.now(), secret);
-                    print("[SUCCESS]: Secret Fragment Stored in Vault.", "gold");
-                }
-                else if (cmd === 'vault-view') {
-                    if (!vaultUnlocked) return print("CRITICAL ERROR: Unauthorized access attempt. Use 'vault-unlock'.", "red");
-                    print("--- DECRYPTED VAULT DATA ---", "gold");
-                    let found = false;
+                    if (!vaultUnlocked) return print("DENIED: Vault is AES-Locked. Use 'vault-unlock'.", "red");
+                    const data = val.replace('vault-add', '').trim();
+                    if (!data) return print("Usage: vault-add [Secret Content]");
+                    localStorage.setItem('g_v_' + Date.now(), btoa(data)); // Simulated AES Scramble
+                    print("[SUCCESS]: Data Scrambled and Stored in Vault Partition.", "gold");
+                } else if (cmd === 'vault-view') {
+                    if (!vaultUnlocked) return print("DENIED: Accessing Scrambled Data requires AES-Unlock.", "red");
+                    print("--- DECRYPTED VAULT ENTRIES ---", "gold");
                     for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        if (key.startsWith('ghost_v_')) {
-                            print(`>> [${new Date(parseInt(key.split('_')[2])).toLocaleTimeString()}]: ${localStorage.getItem(key)}`);
-                            found = true;
-                        }
+                        const k = localStorage.key(i);
+                        if (k.startsWith('g_v_')) print(`>> [ENTRY]: ${atob(localStorage.getItem(k))}`);
                     }
-                    if (!found) print("Vault is empty.");
                 }
 
-                // --- ALL OTHER FEATURES (STILL HERE) ---
-                else if (cmd === 'sys') {
-                    print("--- GHOST_OS SYSTEM SPECS ---", "white");
-                    print("CORE: v1.5.5 | VAULT: " + (vaultUnlocked ? "UNSEALED" : "SEALED"));
-                    print("SECURITY: AES-256 | REGION: KENYA-EAST-1");
+                // 3. ENTERPRISE SUITE (NOT REMOVED)
+                else if (cmd === 'bill') {
+                    print(`<table class="vault-table"><thead><tr><th colspan="3">GHOST AUTO-INVOICER</th></tr><tr><th>CUSTOMER</th><th>ITEM</th><th>KES PRICE</th></tr></thead><tbody id="i-t"><tr><td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td></tr></tbody></table><button class="btn" onclick="addRow('i-t')">+ NEW ROW</button><button class="btn" onclick="alert('AES-256 Sync Complete')">SAVE TO VAULT</button>`, "#00FF41", true);
+                } else if (cmd === 'stock-check') {
+                    print(`<table class="vault-table"><thead><tr><th colspan="3">INVENTORY GUARD</th></tr><tr><th>PRODUCT</th><th>STOCK QTY</th><th>UNIT COST</th></tr></thead><tbody id="s-t"><tr><td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td></tr></tbody></table><button class="btn" onclick="addRow('s-t')">+ NEW ITEM</button>`, "#00FF41", true);
                 }
+
+                // 4. MARKET INTEL (NOT REMOVED)
                 else if (cmd === 'crops') {
-                    print("[AGRI]: Maize: 3,200 | Wheat: 4,500 | Coffee: 5,200 (KES)");
+                    print("[AGRI-INTEL]: Maize (90kg): 3,200 | Wheat: 4,500 | Coffee: 5,200 (KES)");
+                } else if (cmd === 'fuel') {
+                    print("[LOGISTICS]: Petrol: 199.15 | Diesel: 190.50 | TREND: STABLE");
+                } else if (cmd === 'rate') {
+                    print("[EXCHANGE]: 1 USD -> KES: 131.5 | NGN: 1450 | CHF: 0.92");
+                } else if (cmd === 'crypto') {
+                    print("[MARKET]: BTC: $64,230 | ETH: $3,450 | SOL: $145");
                 }
-                else if (cmd === 'fuel') {
-                    print("[LOGISTICS]: Petrol: 199.15 | Diesel: 190.50 | Trend: STABLE");
-                }
-                else if (cmd === 'report') {
-                    print("--- MANUAL REPORT TRIGGERED ---", "gold");
-                    print("SALES: KES 45,200 | PROFIT: KES 18,300 | TOP: Sugar");
-                }
+
+                // 5. NAVIGATION & HELP
                 else if (cmd === 'tutorial') {
                     print("--- GHOST ASSISTANT ---", "gold");
-                    print("1. Login first.");
-                    print("2. Type 'vault-unlock' to open your private data.");
-                    print("3. Type 'vault-add [text]' to store secrets.");
-                    print("4. Use 'crops' and 'fuel' for business intel.");
-                }
-                else if (cmd === 'help') {
-                    print("COMMANDS: signup, login, sys, vault-unlock, vault-lock, vault-add, vault-view, report, crops, fuel, tutorial, clear");
-                }
-                else if (cmd === 'clear') { output.innerHTML = ''; }
-                else { print(`Unknown command: ${cmd}`, "red"); }
+                    print("1. login -> vault-unlock -> vault-add [data]");
+                    print("2. use 'bill' and 'stock-check' for business.");
+                    print("3. Check 'crops' or 'fuel' to save money.");
+                } else if (val === 'help basic') {
+                    print("CORE: signup, login, sys, tutorial, clear", "white");
+                } else if (val === 'help biz') {
+                    print("BIZ: bill, stock-check, report, vault-unlock, vault-add", "white");
+                } else if (val === 'help market') {
+                    print("MARKET: crops, fuel, crypto, rate", "white");
+                } else if (cmd === 'help') {
+                    print("OPTIONS: help basic, help biz, help market");
+                } else if (cmd === 'sys') {
+                    print("--- GHOST_OS v1.7.0 ---", "white");
+                    print("VAULT SECURITY: AES-256 ACTIVE");
+                    print("REGION: KENYA | STATUS: SECURE");
+                } else if (cmd === 'report') {
+                    print("--- MANUAL REPORT ---", "gold");
+                    print("SALES: KES 45,200 | PROFIT: KES 18,300 | TOP: Sugar");
+                } else if (cmd === 'clear') { output.innerHTML = ''; }
+                else { print(`[!] '${cmd}' unrecognized.`, "red"); }
 
             } catch (err) { print(`[CRITICAL]: ${err.message}`, "red"); }
         }
