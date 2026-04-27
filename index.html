@@ -29,13 +29,11 @@ RESTRICTED ACCESS. Type <span style="color:#fff">login [password]</span> to proc
         <span id="terminal-prompt" class="prompt">guest@ghost:~$</span>
         <input type="text" id="in" autofocus autocomplete="off" spellcheck="false">
     </div> 
-  <script type="module"> 
-    
-      // 1. Import Firebase Security from Google
+
+    <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // 2. YOUR UPDATED CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyB4a-n2SG7SXYAmc7preydTChKYphkzpxo",
         authDomain: "ghost-os-8f445.firebaseapp.com",
@@ -45,66 +43,10 @@ RESTRICTED ACCESS. Type <span style="color:#fff">login [password]</span> to proc
         appId: "1:1097985809108:web:45eddccb18d9b8e409b941"
     };
 
-    // 3. Start Connection
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
-    let currentUser = null;
-
     const terminal = document.getElementById('terminal-output');
     const inputField = document.getElementById('command-input');
-
-    // Monitor Login Status
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUser = user;
-            printToTerminal(`[SYSTEM]: Access Granted. Welcome, Architect (${user.email})`, "#00FF41");
-        } else {
-            currentUser = null;
-            printToTerminal("[SYSTEM]: GHOST_OS Locked. Use 'signup' or 'login'.", "#FF3131");
-        }
-    });
-
-    // COMMAND PROCESSOR
-    async function processCommand(cmd) {
-        const args = cmd.split(' ');
-        const command = args[0].toLowerCase();
-
-        if (command === 'signup') {
-            const email = args[1];
-            const pass = args[2];
-            if(!email || !pass) return printToTerminal("[ERROR]: Use 'signup email password'", "orange");
-            try {
-                await createUserWithEmailAndPassword(auth, email, pass);
-                printToTerminal(`[SUCCESS]: Account created for ${email}`, "#00FF41");
-            } catch (err) {
-                printToTerminal(`[ERROR]: ${err.message}`, "#FF3131");
-            }
-        } 
-        
-        else if (command === 'login') {
-            const email = args[1];
-            const pass = args[2];
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-                printToTerminal(`[SUCCESS]: System Decrypted. Welcome back.`, "#00FF41");
-            } catch (err) {
-                printToTerminal(`[ERROR]: Access Denied. Check credentials.`, "#FF3131");
-            }
-        }
-
-        else if (command === 'logout') {
-            await signOut(auth);
-            printToTerminal("[SYSTEM]: Connection Terminated.", "yellow");
-        }
-
-        else if (command === 'clear') {
-            terminal.innerHTML = '';
-        }
-        
-        else {
-            printToTerminal(`[GHOST]: '${command}' is not a recognized internal command.`, "white");
-        }
-    }
 
     function printToTerminal(text, color) {
         const p = document.createElement('p');
@@ -112,6 +54,58 @@ RESTRICTED ACCESS. Type <span style="color:#fff">login [password]</span> to proc
         p.innerText = text;
         terminal.appendChild(p);
         window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    // Initial Message to confirm script is working
+    printToTerminal("[SYSTEM]: GHOST_OS Core Booting...", "white");
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            printToTerminal(`[ACCESS]: Welcome back, ${user.email}`, "#00FF41");
+        } else {
+            printToTerminal("[SYSTEM]: SECURE ENTRANCE REQUIRED. Please 'signup' or 'login'.", "#FF3131");
+        }
+    });
+
+    async function processCommand(cmd) {
+        const args = cmd.trim().split(/\s+/);
+        const command = args[0].toLowerCase();
+
+        if (command === 'signup') {
+            const email = args[1];
+            const pass = args[2];
+            if(!email || !pass) return printToTerminal("[!] Syntax: signup email password", "orange");
+            printToTerminal(`[ATTEMPT]: Registering ${email}...`, "gray");
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+                printToTerminal("[SUCCESS]: Account Registered to Cloud.", "#00FF41");
+            } catch (err) {
+                printToTerminal(`[CRITICAL ERROR]: ${err.message}`, "#FF3131");
+                if(err.code === "auth/operation-not-allowed") {
+                   printToTerminal("ACTION REQUIRED: You must enable 'Email/Password' in the Firebase Console!", "yellow");
+                }
+            }
+        } 
+        
+        else if (command === 'login') {
+            const email = args[1];
+            const pass = args[2];
+            if(!email || !pass) return printToTerminal("[!] Syntax: login email password", "orange");
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                printToTerminal("[SUCCESS]: Decryption Successful. Access Granted.", "#00FF41");
+            } catch (err) {
+                printToTerminal(`[DENIED]: ${err.message}`, "#FF3131");
+            }
+        }
+
+        else if (command === 'logout') {
+            await signOut(auth);
+            printToTerminal("[SYSTEM]: Offline.", "yellow");
+        }
+
+        else if (command === 'clear') { terminal.innerHTML = ''; }
+        else { printToTerminal(`[GHOST]: Command '${command}' unknown.`, "white"); }
     }
 
     inputField.addEventListener('keypress', (e) => {
@@ -122,4 +116,4 @@ RESTRICTED ACCESS. Type <span style="color:#fff">login [password]</span> to proc
             inputField.value = '';
         }
     });
-</script> 
+</script>
