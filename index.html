@@ -3,24 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghost_OS Intelligence</title>
+    <title>GHOST_OS | Intelligence Terminal</title>
     <style>
-        body { background: #0d0208; color: #00FF41; font-family: monospace; margin: 0; padding: 15px; }
-        #terminal-output { height: 80vh; overflow-y: auto; margin-bottom: 10px; }
-        .input-area { display: flex; border-top: 1px solid #333; padding-top: 10px; }
-        input { background: transparent; border: none; color: #00FF41; outline: none; flex: 1; font-family: monospace; }
-        p { margin: 2px 0; }
+        body {
+            background-color: #050505;
+            color: #00FF41;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        #terminal {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #111;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.1);
+        }
+        .input-line {
+            display: flex;
+            border-top: 1px solid #111;
+            padding-top: 10px;
+        }
+        #command-input {
+            background: transparent;
+            border: none;
+            color: #00FF41;
+            font-family: inherit;
+            font-size: 1.1em;
+            outline: none;
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+        .error { color: #FF3131; }
+        .system { color: #ffffff; font-weight: bold; }
+        .dim { color: #555; }
     </style>
 </head>
 <body>
 
-<div id="terminal-output">
-    <p style="color:white">GHOST_OS IS LIVE. IF YOU CAN READ THIS, SCRIPT IS WORKING.</p>
+<div id="terminal">
+    <p class="system">[BOOT]: GHOST_OS INTELLIGENCE SYSTEM v1.0.4</p>
+    <p class="system">[STATUS]: CONNECTING TO CLOUD SATELLITE...</p>
 </div>
 
-<div class="input-area">
-    <span>></span>
-    <input type="text" id="command-input" autofocus>
+<div class="input-line">
+    <span>GHOST_OS ></span>
+    <input type="text" id="command-input" autofocus autocomplete="off">
 </div>
 
 <script type="module">
@@ -36,50 +69,62 @@
         appId: "1:1097985809108:web:45eddccb18d9b8e409b941"
     };
 
+    // Start App
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
-    const output = document.getElementById('terminal-output');
+    const output = document.getElementById('terminal');
     const input = document.getElementById('command-input');
 
-    function print(text, color = "#00FF41") {
+    function log(msg, color = "#00FF41") {
         const p = document.createElement('p');
         p.style.color = color;
-        p.innerText = text;
+        p.innerText = msg;
         output.appendChild(p);
         output.scrollTop = output.scrollHeight;
     }
 
+    // Monitor User
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            print(`[ACCESS]: Logged in as ${user.email}`);
+            log(`[AUTH]: SECURE CONNECTION ESTABLISHED. WELCOME ${user.email.toUpperCase()}`, "#00FF41");
         } else {
-            print("[SYSTEM]: LOCKED. Use 'signup' or 'login'", "red");
+            log("[AUTH]: SYSTEM ENCRYPTED. USE 'signup' OR 'login' TO DECRYPT.", "#FF3131");
         }
     });
 
-    input.addEventListener('keypress', async (e) => {
+    // Command Handler
+    input.addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') {
-            const val = input.value;
-            const args = val.split(' ');
-            const cmd = args[0].toLowerCase();
-            input.value = '';
+            const fullCmd = input.value.trim();
+            if (!fullCmd) return;
             
-            print(`> ${val}`, "#555");
+            log(`> ${fullCmd}`, "#555");
+            input.value = '';
+
+            const parts = fullCmd.split(' ');
+            const cmd = parts[0].toLowerCase();
+            const email = parts[1];
+            const pass = parts[2];
 
             try {
                 if (cmd === 'signup') {
-                    await createUserWithEmailAndPassword(auth, args[1], args[2]);
-                    print("[SUCCESS]: Account Created", "white");
-                } else if (cmd === 'login') {
-                    await signInWithEmailAndPassword(auth, args[1], args[2]);
-                    print("[SUCCESS]: Logged In", "white");
-                } else if (cmd === 'clear') {
+                    if (!email || !pass) throw new Error("Format: signup email password");
+                    await createUserWithEmailAndPassword(auth, email, pass);
+                    log("[SUCCESS]: ACCOUNT REGISTERED ON GLOBAL SERVERS.", "white");
+                } 
+                else if (cmd === 'login') {
+                    if (!email || !pass) throw new Error("Format: login email password");
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    log("[SUCCESS]: ACCESS GRANTED.", "white");
+                } 
+                else if (cmd === 'clear') {
                     output.innerHTML = '';
-                } else {
-                    print(`Unknown: ${cmd}`);
+                } 
+                else {
+                    log(`[GHOST]: COMMAND '${cmd}' NOT FOUND.`, "white");
                 }
             } catch (err) {
-                print(`[ERROR]: ${err.message}`, "red");
+                log(`[CRITICAL]: ${err.message}`, "#FF3131");
             }
         }
     });
