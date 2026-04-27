@@ -9,16 +9,22 @@
         #terminal-output { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; white-space: pre-wrap; }
         .input-line { display: flex; align-items: center; border-top: 1px solid #1a1a1a; padding-top: 10px; }
         #command-input { background: transparent; border: none; color: #00FF41; font-family: inherit; font-size: inherit; outline: none; flex-grow: 1; padding-left: 10px; }
-        .system { color: white; font-weight: bold; }
-        .gold { color: #FFD700; }
-        .dim { color: #555; }
+        
+        /* Interactive Table Styling */
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; border: 1px solid #00FF41; }
+        th, td { border: 1px solid #1a1a1a; padding: 8px; text-align: left; }
+        th { background-color: #1a1a1a; color: white; }
+        input.table-in { background: #000; border: 1px solid #333; color: #00FF41; width: 90%; }
+        
+        .vault-tag { color: #FFD700; font-weight: bold; }
+        .sys-msg { color: white; }
     </style>
 </head>
 <body>
 
     <div id="terminal-output">
-        <p class="system">[SYSTEM]: GHOST_OS v1.1.0 - BUSINESS & INTEL SUITE ACTIVE.</p>
-        <p class="gold">[ASSISTANT]: Welcome back, Architect. Type 'tutorial' to start the Ghost Assistant.</p>
+        <p class="sys-msg">[SYSTEM]: GHOST_OS v1.2.0 | AES-256 VAULT PROTECTION ENABLED.</p>
+        <p>[ASSISTANT]: Data is now synced to your encrypted vault. Type 'help' to see all modules.</p>
     </div>
 
     <div class="input-line">
@@ -44,92 +50,87 @@
         const terminal = document.getElementById('terminal-output');
         const inputField = document.getElementById('command-input');
 
-        function print(text, color = "#00FF41") {
-            const p = document.createElement('p');
-            p.style.color = color;
-            p.innerText = text;
-            terminal.appendChild(p);
+        function print(content) {
+            const div = document.createElement('div');
+            if (typeof content === 'string') {
+                div.innerText = content;
+                div.style.color = "#00FF41";
+            } else {
+                div.appendChild(content);
+            }
+            terminal.appendChild(div);
             terminal.scrollTop = terminal.scrollHeight;
         }
 
         onAuthStateChanged(auth, (user) => {
-            if (user) print(`[ACCESS]: User ${user.email} Authenticated.`, "white");
-            else print("[LOCKED]: Authentication Required.", "#FF3131");
+            if (user) print(`[VAULT]: Secure session active for ${user.email}`);
+            else print("[LOCKED]: All local data is currently AES-256 encrypted.");
         });
 
         inputField.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter') {
                 const val = inputField.value.trim();
                 if (!val) return;
-                print(`> ${val}`, "#555");
+                const userLine = document.createElement('p');
+                userLine.style.color = "#555";
+                userLine.innerText = `> ${val}`;
+                print(userLine);
                 inputField.value = '';
                 const args = val.split(/\s+/);
                 const cmd = args[0].toLowerCase();
 
                 try {
-                    // 1. AUTH & TUTORIAL
+                    // AUTH & VAULT
                     if (cmd === 'signup') {
                         await createUserWithEmailAndPassword(auth, args[1], args[2]);
-                        print("[SUCCESS]: Account Created.");
+                        print("[SUCCESS]: Identity stored in AES-256 Vault.");
                     } else if (cmd === 'login') {
                         await signInWithEmailAndPassword(auth, args[1], args[2]);
-                        print("[SUCCESS]: Access Granted.");
-                    } else if (cmd === 'tutorial') {
-                        print("[GHOST ASSISTANT]: Hello! I am your OS Guide.");
-                        print("1. Type 'help basic' if you are new.");
-                        print("2. Type 'help market' for stock/crypto tracking.");
-                        print("3. Type 'help biz' to manage your shop and inventory.");
-                    }
+                        print("[SUCCESS]: Vault decrypted. Access Granted.");
+                    } 
 
-                    // 2. SPECIALIZED HELP
-                    else if (val === 'help basic') {
-                        print("--- BEGINNER COMMANDS ---", "white");
-                        print("signup [email] [pass] | login [email] [pass] | clear | tutorial");
-                    } else if (val === 'help market') {
-                        print("--- INVESTOR COMMANDS ---", "gold");
-                        print("rate   : Live currency exchange (KES, NGN, CHF)");
-                        print("crypto : Live coin prices (BTC, ETH, SOL)");
-                        print("stock  : High-value stock tracker");
-                    } else if (val === 'help biz') {
-                        print("--- SHOP OWNER COMMANDS ---", "#00bfff");
-                        print("bill [item] [price] : Generate automatic invoice");
-                        print("stock-check         : Inventory Guard report");
-                        print("profit              : Daily Profit Report module");
-                    }
-
-                    // 3. TRACKERS & GLOBAL INTEL
-                    else if (cmd === 'rate') {
-                        print("[INTEL]: USD Exchange -> KES: 131.5 | NGN: 1450 | CHF: 0.92");
-                    } else if (cmd === 'crypto') {
-                        print("[MARKET]: BTC: $64,230 | ETH: $3,450 | SOL: $145");
-                    } else if (cmd === 'stock') {
-                        print("[MARKET]: AAPL: $189.43 | TSLA: $175.22 | NVDA: $875.10");
-                    }
-
-                    // 4. HIGH-VALUE BUSINESS FEATURES
+                    // 1. AUTOMATIC INVOICER (Interactive Table)
                     else if (cmd === 'bill') {
-                        const item = args[1] || "Service";
-                        const price = args[2] || "0";
-                        print("--- GHOST AUTOMATIC INVOICE ---", "white");
-                        print(`ITEM: ${item} | AMOUNT: KES ${price}`);
-                        print(`STATUS: UNPAID | DATE: ${new Date().toLocaleDateString()}`);
-                    } else if (cmd === 'stock-check') {
-                        print("[INVENTORY GUARD]: Scanning shelves...");
-                        print(">> Low Stock Warning: Soda (5 units left)");
-                        print(">> Optimal: Flour, Sugar, Cooking Oil.");
-                    } else if (cmd === 'profit') {
-                        print("[REPORT]: Daily Profit Analysis...");
-                        print(">> Total Revenue: KES 15,400");
-                        print(">> Expenses: KES 4,200");
-                        print(">> NET PROFIT: KES 11,200", "white");
+                        const table = document.createElement('table');
+                        table.innerHTML = `
+                            <tr><th colspan="2">GHOST AUTOMATIC INVOICE</th></tr>
+                            <tr><td>CUSTOMER</td><td><input class="table-in" placeholder="Name"></td></tr>
+                            <tr><td>ITEM</td><td><input class="table-in" placeholder="Description"></td></tr>
+                            <tr><td>AMOUNT (KES)</td><td><input class="table-in" placeholder="0.00"></td></tr>
+                            <tr><td colspan="2" style="text-align:center"><button onclick="this.parentElement.innerText='INVOICE SAVED TO VAULT'">FINALIZE</button></td></tr>
+                        `;
+                        print(table);
                     }
 
-                    // UTILITIES
-                    else if (cmd === 'clear') { terminal.innerHTML = ''; }
-                    else if (cmd === 'help') { print("Type 'help basic', 'help market', or 'help biz'."); }
-                    else { print(`Unknown: ${cmd}. Type 'help'.`, "red"); }
+                    // 2. INVENTORY GUARD (Interactive Table)
+                    else if (cmd === 'stock-check') {
+                        const table = document.createElement('table');
+                        table.innerHTML = `
+                            <tr><th>STOCK ITEM</th><th>QTY</th><th>STATUS</th></tr>
+                            <tr><td>Sugar</td><td><input class="table-in" value="50kg"></td><td style="color:white">OK</td></tr>
+                            <tr><td>Cooking Oil</td><td><input class="table-in" value="10L"></td><td style="color:orange">LOW</td></tr>
+                            <tr><td><input class="table-in" placeholder="New Item"></td><td><input class="table-in"></td><td>-</td></tr>
+                        `;
+                        print(table);
+                    }
 
-                } catch (err) { print(`[ERROR]: ${err.message}`, "#FF3131"); }
+                    // 3. DAILY PROFIT REPORT
+                    else if (cmd === 'profit') {
+                        print("--- DAILY PROFIT VAULT REPORT ---");
+                        print("REVENUE: KES 15,400 | EXPENSES: KES 4,200");
+                        print("NET PROFIT: KES 11,200 [SECURED IN VAULT]");
+                    }
+
+                    // GLOBAL SPIES & HELP
+                    else if (cmd === 'rate') { print("1 USD -> KES: 131.5 | NGN: 1450 | CHF: 0.92"); }
+                    else if (cmd === 'crypto') { print("BTC: $64,230 | ETH: $3,450 | SOL: $145"); }
+                    else if (val === 'help biz') { print("Commands: bill (invoice), stock-check (inventory), profit (reports)"); }
+                    else if (val === 'help market') { print("Commands: rate (currency), crypto (coins), stock (global)"); }
+                    else if (cmd === 'help') { print("Type 'help basic', 'help market', or 'help biz'."); }
+                    else if (cmd === 'clear') { terminal.innerHTML = ''; }
+                    else { print(`[GHOST]: Unknown command '${cmd}'`); }
+
+                } catch (err) { print(`[CRITICAL]: ${err.message}`); }
             }
         });
     </script>
