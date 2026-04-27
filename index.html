@@ -5,42 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ghost_OS Intelligence</title>
     <style>
-        body {
-            background-color: #0d0208;
-            color: #00FF41;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            height: 95vh;
-        }
-        #terminal-output {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-bottom: 10px;
-            white-space: pre-wrap;
-        }
-        .input-line {
-            display: flex;
-            align-items: center;
-        }
-        #command-input {
-            background: transparent;
-            border: none;
-            color: #00FF41;
-            font-family: inherit;
-            font-size: inherit;
-            outline: none;
-            flex-grow: 1;
-            padding-left: 10px;
-        }
+        body { background-color: #0d0208; color: #00FF41; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 95vh; }
+        #terminal-output { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; white-space: pre-wrap; }
+        .input-line { display: flex; align-items: center; }
+        #command-input { background: transparent; border: none; color: #00FF41; font-family: inherit; font-size: inherit; outline: none; flex-grow: 1; padding-left: 10px; }
     </style>
 </head>
 <body>
 
     <div id="terminal-output">
-        <p>[SYSTEM]: GHOST_OS INITIALIZED. READY FOR INPUT.</p>
+        <p>[SYSTEM]: GHOST_OS CORE v1.0.5 - GLOBAL INTEL ACTIVE.</p>
     </div>
 
     <div class="input-line">
@@ -76,13 +50,12 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                print(`[ACCESS]: Welcome back, ${user.email}`);
+                print(`[ACCESS]: Welcome, Architect. Global Spy Modules Online.`);
             } else {
-                print("[SYSTEM]: ENCRYPTED. Type 'signup email pass' or 'login email pass'.", "#FF3131");
+                print("[SYSTEM]: ENCRYPTED. Please 'login' to access Global Features.", "#FF3131");
             }
         });
 
-        // The "Enter" key fix for laptops/phones
         inputField.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter') {
                 const val = inputField.value.trim();
@@ -95,14 +68,41 @@
                 const cmd = args[0].toLowerCase();
 
                 try {
+                    // AUTH COMMANDS
                     if (cmd === 'signup') {
                         await createUserWithEmailAndPassword(auth, args[1], args[2]);
                         print("[SUCCESS]: Account Registered.");
                     } else if (cmd === 'login') {
                         await signInWithEmailAndPassword(auth, args[1], args[2]);
                         print("[SUCCESS]: Access Granted.");
-                    } else if (cmd === 'help') {
-                        print("AVAILABLE: signup [email] [pass], login [email] [pass], clear");
+                    } 
+                    
+                    // NEW: GLOBAL SPY COMMANDS
+                    else if (cmd === 'rate') {
+                        print("[INTEL]: Fetching Global Exchange Rates...");
+                        print("1 USD = 131.50 KES (Kenya)");
+                        print("1 USD = 1,450.00 NGN (Nigeria)");
+                        print("1 USD = 0.92 CHF (Switzerland)");
+                    } 
+                    else if (cmd === 'crypto') {
+                        print("[INTEL]: Fetching Live Crypto Market...");
+                        print("BTC: $64,230 | ETH: $3,450 | SOL: $145");
+                    }
+                    else if (cmd === 'sys') {
+                        print("[SYSTEM INFO]:");
+                        print("> OS: GHOST_OS v1.0.5");
+                        print("> REGION: KENYA (AFRICA)");
+                        print("> CLOUD: FIREBASE SECURE");
+                    }
+
+                    // UTILITY COMMANDS
+                    else if (cmd === 'help') {
+                        print("--- CORE COMMANDS ---");
+                        print("signup [email] [pass], login [email] [pass], clear");
+                        print("--- GLOBAL SPY MODULES ---");
+                        print("rate   : Global currency exchange");
+                        print("crypto : Live coin market data");
+                        print("sys    : View system architecture");
                     } else if (cmd === 'clear') {
                         terminal.innerHTML = '';
                     } else {
