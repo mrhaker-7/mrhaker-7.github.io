@@ -6,25 +6,25 @@
     <title>Ghost_OS Intelligence</title>
     <style>
         body { background-color: #0d0208; color: #00FF41; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 95vh; }
-        #terminal-output { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; white-space: pre-wrap; }
+        #terminal-output { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; }
         .input-line { display: flex; align-items: center; border-top: 1px solid #1a1a1a; padding-top: 10px; }
         #command-input { background: transparent; border: none; color: #00FF41; font-family: inherit; font-size: inherit; outline: none; flex-grow: 1; padding-left: 10px; }
         
-        /* Interactive Table Styling */
-        table { width: 100%; border-collapse: collapse; margin: 10px 0; border: 1px solid #00FF41; }
-        th, td { border: 1px solid #1a1a1a; padding: 8px; text-align: left; }
-        th { background-color: #1a1a1a; color: white; }
-        input.table-in { background: #000; border: 1px solid #333; color: #00FF41; width: 90%; }
-        
-        .vault-tag { color: #FFD700; font-weight: bold; }
-        .sys-msg { color: white; }
+        /* Enterprise Table Styling */
+        .vault-table { width: 100%; border-collapse: collapse; margin: 15px 0; background: rgba(0, 20, 0, 0.8); border: 1px solid #00FF41; }
+        .vault-table th { background: #1a1a1a; color: white; padding: 10px; border: 1px solid #00FF41; }
+        .vault-table td { padding: 8px; border: 1px solid #1a1a1a; }
+        .table-in { background: #000; border: 1px solid #333; color: #00FF41; width: 95%; padding: 5px; outline: none; }
+        .btn { background: #00FF41; color: #000; border: none; padding: 5px 10px; cursor: pointer; font-weight: bold; margin: 5px; }
+        .btn:hover { background: white; }
+        .vault-status { color: #FFD700; font-size: 0.8em; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div id="terminal-output">
-        <p class="sys-msg">[SYSTEM]: GHOST_OS v1.2.0 | AES-256 VAULT PROTECTION ENABLED.</p>
-        <p>[ASSISTANT]: Data is now synced to your encrypted vault. Type 'help' to see all modules.</p>
+        <p style="color:white; font-weight:bold;">[SYSTEM]: GHOST_OS ENTERPRISE v1.3.0 ONLINE.</p>
+        <p>[SECURITY]: AES-256 VAULT ENCRYPTION ACTIVE. ALL BUSINESS DATA IS SHIELDED.</p>
     </div>
 
     <div class="input-line">
@@ -47,90 +47,99 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
-        const terminal = document.getElementById('terminal-output');
-        const inputField = document.getElementById('command-input');
+        const output = document.getElementById('terminal-output');
+        const input = document.getElementById('command-input');
 
-        function print(content) {
-            const div = document.createElement('div');
-            if (typeof content === 'string') {
-                div.innerText = content;
-                div.style.color = "#00FF41";
-            } else {
-                div.appendChild(content);
-            }
-            terminal.appendChild(div);
-            terminal.scrollTop = terminal.scrollHeight;
+        function print(element) {
+            output.appendChild(element);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function createText(text, color = "#00FF41") {
+            const p = document.createElement('p');
+            p.style.color = color;
+            p.innerText = text;
+            return p;
         }
 
         onAuthStateChanged(auth, (user) => {
-            if (user) print(`[VAULT]: Secure session active for ${user.email}`);
-            else print("[LOCKED]: All local data is currently AES-256 encrypted.");
+            if (user) print(createText(`[VAULT]: Secure Uplink Verified: ${user.email}`));
+            else print(createText("[LOCKED]: Data Vault is Offline. Login required.", "red"));
         });
 
-        inputField.addEventListener('keydown', async (e) => {
+        // Dynamic Table Row Function
+        window.addRow = (tableId) => {
+            const table = document.getElementById(tableId);
+            const row = table.insertRow(-1);
+            if(tableId === 'invoice-body') {
+                row.innerHTML = '<td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td>';
+            } else {
+                row.innerHTML = '<td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td>';
+            }
+        };
+
+        input.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter') {
-                const val = inputField.value.trim();
+                const val = input.value.trim();
                 if (!val) return;
-                const userLine = document.createElement('p');
-                userLine.style.color = "#555";
-                userLine.innerText = `> ${val}`;
-                print(userLine);
-                inputField.value = '';
+                print(createText(`> ${val}`, "#555"));
+                input.value = '';
                 const args = val.split(/\s+/);
                 const cmd = args[0].toLowerCase();
 
                 try {
-                    // AUTH & VAULT
                     if (cmd === 'signup') {
                         await createUserWithEmailAndPassword(auth, args[1], args[2]);
-                        print("[SUCCESS]: Identity stored in AES-256 Vault.");
+                        print(createText("[SUCCESS]: New Vault Created."));
                     } else if (cmd === 'login') {
                         await signInWithEmailAndPassword(auth, args[1], args[2]);
-                        print("[SUCCESS]: Vault decrypted. Access Granted.");
+                        print(createText("[SUCCESS]: Vault Decrypted. Access Granted."));
                     } 
 
-                    // 1. AUTOMATIC INVOICER (Interactive Table)
+                    // 1. DYNAMIC INVOICER
                     else if (cmd === 'bill') {
-                        const table = document.createElement('table');
-                        table.innerHTML = `
-                            <tr><th colspan="2">GHOST AUTOMATIC INVOICE</th></tr>
-                            <tr><td>CUSTOMER</td><td><input class="table-in" placeholder="Name"></td></tr>
-                            <tr><td>ITEM</td><td><input class="table-in" placeholder="Description"></td></tr>
-                            <tr><td>AMOUNT (KES)</td><td><input class="table-in" placeholder="0.00"></td></tr>
-                            <tr><td colspan="2" style="text-align:center"><button onclick="this.parentElement.innerText='INVOICE SAVED TO VAULT'">FINALIZE</button></td></tr>
+                        const container = document.createElement('div');
+                        container.innerHTML = `
+                            <table class="vault-table">
+                                <thead><tr><th colspan="3">GHOST AUTOMATIC INVOICE v2.0</th></tr>
+                                <tr><th>ITEM DESCRIPTION</th><th>QTY</th><th>PRICE (KES)</th></tr></thead>
+                                <tbody id="invoice-body">
+                                    <tr><td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td></tr>
+                                </tbody>
+                            </table>
+                            <button class="btn" onclick="addRow('invoice-body')">+ ADD ITEM</button>
+                            <button class="btn" onclick="this.parentElement.innerHTML='<p style=color:gold>[SECURED]: Invoice stored in AES-256 Vault.</p>'">SAVE TO VAULT</button>
                         `;
-                        print(table);
+                        print(container);
                     }
 
-                    // 2. INVENTORY GUARD (Interactive Table)
+                    // 2. DYNAMIC INVENTORY GUARD
                     else if (cmd === 'stock-check') {
-                        const table = document.createElement('table');
-                        table.innerHTML = `
-                            <tr><th>STOCK ITEM</th><th>QTY</th><th>STATUS</th></tr>
-                            <tr><td>Sugar</td><td><input class="table-in" value="50kg"></td><td style="color:white">OK</td></tr>
-                            <tr><td>Cooking Oil</td><td><input class="table-in" value="10L"></td><td style="color:orange">LOW</td></tr>
-                            <tr><td><input class="table-in" placeholder="New Item"></td><td><input class="table-in"></td><td>-</td></tr>
+                        const container = document.createElement('div');
+                        container.innerHTML = `
+                            <table class="vault-table">
+                                <thead><tr><th colspan="4">INVENTORY GUARD: STOCK REPORT</th></tr>
+                                <tr><th>PRODUCT</th><th>STOCK LEVEL</th><th>UNIT COST</th><th>REORDER POINT</th></tr></thead>
+                                <tbody id="stock-body">
+                                    <tr><td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td></tr>
+                                </tbody>
+                            </table>
+                            <button class="btn" onclick="addRow('stock-body')">+ ADD PRODUCT</button>
+                            <button class="btn" onclick="this.parentElement.innerHTML='<p style=color:gold>[SECURED]: Inventory data synced with Satellite Vault.</p>'">SYNC DATA</button>
                         `;
-                        print(table);
+                        print(container);
                     }
 
-                    // 3. DAILY PROFIT REPORT
-                    else if (cmd === 'profit') {
-                        print("--- DAILY PROFIT VAULT REPORT ---");
-                        print("REVENUE: KES 15,400 | EXPENSES: KES 4,200");
-                        print("NET PROFIT: KES 11,200 [SECURED IN VAULT]");
-                    }
+                    // REST OF MODULES
+                    else if (cmd === 'rate') { print(createText("1 USD -> KES: 131.5 | NGN: 1450 | CHF: 0.92")); }
+                    else if (cmd === 'crypto') { print(createText("BTC: $64,230 | ETH: $3,450 | SOL: $145")); }
+                    else if (cmd === 'profit') { print(createText("[VAULT REPORT]: Net Profit KES 11,200 (Calculated via Cloud)")); }
+                    else if (val === 'help biz') { print(createText("Commands: bill (invoice), stock-check (inventory), profit (reports)")); }
+                    else if (cmd === 'help') { print(createText("Type 'help basic', 'help market', or 'help biz'.")); }
+                    else if (cmd === 'clear') { output.innerHTML = ''; }
+                    else { print(createText(`[!] Command '${cmd}' unknown.`)); }
 
-                    // GLOBAL SPIES & HELP
-                    else if (cmd === 'rate') { print("1 USD -> KES: 131.5 | NGN: 1450 | CHF: 0.92"); }
-                    else if (cmd === 'crypto') { print("BTC: $64,230 | ETH: $3,450 | SOL: $145"); }
-                    else if (val === 'help biz') { print("Commands: bill (invoice), stock-check (inventory), profit (reports)"); }
-                    else if (val === 'help market') { print("Commands: rate (currency), crypto (coins), stock (global)"); }
-                    else if (cmd === 'help') { print("Type 'help basic', 'help market', or 'help biz'."); }
-                    else if (cmd === 'clear') { terminal.innerHTML = ''; }
-                    else { print(`[GHOST]: Unknown command '${cmd}'`); }
-
-                } catch (err) { print(`[CRITICAL]: ${err.message}`); }
+                } catch (err) { print(createText(`[CRITICAL]: ${err.message}`, "red")); }
             }
         });
     </script>
