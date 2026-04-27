@@ -5,143 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ghost_OS Intelligence</title>
     <style>
-        body {
-            background-color: #0d0208;
-            color: #00FF41;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            height: 95vh;
-        }
-        #terminal-output {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-bottom: 10px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .input-line {
-            display: flex;
-            align-items: center;
-        }
-        #command-input {
-            background: transparent;
-            border: none;
-            color: #00FF41;
-            font-family: inherit;
-            font-size: inherit;
-            outline: none;
-            flex-grow: 1;
-            padding-left: 10px;
-        }
-        p { margin: 5px 0; }
-        .red { color: #FF3131; }
-        .green { color: #00FF41; }
-        .yellow { color: #FFFF00; }
-        .gray { color: #555; }
+        body { background: #0d0208; color: #00FF41; font-family: monospace; margin: 0; padding: 15px; }
+        #terminal-output { height: 80vh; overflow-y: auto; margin-bottom: 10px; }
+        .input-area { display: flex; border-top: 1px solid #333; padding-top: 10px; }
+        input { background: transparent; border: none; color: #00FF41; outline: none; flex: 1; font-family: monospace; }
+        p { margin: 2px 0; }
     </style>
 </head>
 <body>
 
-    <div id="terminal-output">
-        <p>[SYSTEM]: INITIALIZING GHOST_OS CORE...</p>
-    </div>
+<div id="terminal-output">
+    <p style="color:white">GHOST_OS IS LIVE. IF YOU CAN READ THIS, SCRIPT IS WORKING.</p>
+</div>
 
-    <div class="input-line">
-        <span>GHOST_OS ></span>
-        <input type="text" id="command-input" autofocus autocomplete="off">
-    </div>
+<div class="input-area">
+    <span>></span>
+    <input type="text" id="command-input" autofocus>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // YOUR SPECIFIC FIREBASE CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyB4a-n2SG7SXYAmc7preydTChKYphkzpxo",
-            authDomain: "ghost-os-8f445.firebaseapp.com",
-            projectId: "ghost-os-8f445",
-            storageBucket: "ghost-os-8f445.firebasestorage.app",
-            messagingSenderId: "1097985809108",
-            appId: "1:1097985809108:web:45eddccb18d9b8e409b941"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyB4a-n2SG7SXYAmc7preydTChKYphkzpxo",
+        authDomain: "ghost-os-8f445.firebaseapp.com",
+        projectId: "ghost-os-8f445",
+        storageBucket: "ghost-os-8f445.firebasestorage.app",
+        messagingSenderId: "1097985809108",
+        appId: "1:1097985809108:web:45eddccb18d9b8e409b941"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth();
-        const terminal = document.getElementById('terminal-output');
-        const inputField = document.getElementById('command-input');
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const output = document.getElementById('terminal-output');
+    const input = document.getElementById('command-input');
 
-        function printToTerminal(text, color) {
-            const p = document.createElement('p');
-            p.style.color = color;
-            p.innerText = text;
-            terminal.appendChild(p);
-            terminal.scrollTop = terminal.scrollHeight;
+    function print(text, color = "#00FF41") {
+        const p = document.createElement('p');
+        p.style.color = color;
+        p.innerText = text;
+        output.appendChild(p);
+        output.scrollTop = output.scrollHeight;
+    }
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            print(`[ACCESS]: Logged in as ${user.email}`);
+        } else {
+            print("[SYSTEM]: LOCKED. Use 'signup' or 'login'", "red");
         }
+    });
 
-        // Authentication Observer
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                printToTerminal(`[ACCESS]: Welcome, Architect (${user.email})`, "#00FF41");
-            } else {
-                printToTerminal("[SYSTEM]: ENCRYPTED. Please 'signup [email] [pass]' or 'login [email] [pass]'.", "#FF3131");
-            }
-        });
-
-        async function processCommand(cmd) {
-            const args = cmd.trim().split(/\s+/);
-            const command = args[0].toLowerCase();
-
-            if (command === 'signup') {
-                const email = args[1];
-                const pass = args[2];
-                if(!email || !pass) return printToTerminal("[!] Syntax: signup email password", "yellow");
-                try {
-                    await createUserWithEmailAndPassword(auth, email, pass);
-                    printToTerminal("[SUCCESS]: User registered to Cloud.", "#00FF41");
-                } catch (err) {
-                    printToTerminal(`[ERROR]: ${err.message}`, "#FF3131");
-                }
-            } 
+    input.addEventListener('keypress', async (e) => {
+        if (e.key === 'Enter') {
+            const val = input.value;
+            const args = val.split(' ');
+            const cmd = args[0].toLowerCase();
+            input.value = '';
             
-            else if (command === 'login') {
-                const email = args[1];
-                const pass = args[2];
-                if(!email || !pass) return printToTerminal("[!] Syntax: login email password", "yellow");
-                try {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                    printToTerminal("[SUCCESS]: Decryption key accepted. Access Granted.", "#00FF41");
-                } catch (err) {
-                    printToTerminal(`[DENIED]: ${err.message}`, "#FF3131");
+            print(`> ${val}`, "#555");
+
+            try {
+                if (cmd === 'signup') {
+                    await createUserWithEmailAndPassword(auth, args[1], args[2]);
+                    print("[SUCCESS]: Account Created", "white");
+                } else if (cmd === 'login') {
+                    await signInWithEmailAndPassword(auth, args[1], args[2]);
+                    print("[SUCCESS]: Logged In", "white");
+                } else if (cmd === 'clear') {
+                    output.innerHTML = '';
+                } else {
+                    print(`Unknown: ${cmd}`);
                 }
-            }
-
-            else if (command === 'logout') {
-                await signOut(auth);
-                printToTerminal("[SYSTEM]: Offline.", "yellow");
-            }
-
-            else if (command === 'clear') {
-                terminal.innerHTML = '';
-            }
-            
-            else {
-                printToTerminal(`[GHOST]: '${command}' is not a recognized command.`, "white");
+            } catch (err) {
+                print(`[ERROR]: ${err.message}`, "red");
             }
         }
-
-        inputField.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const cmd = inputField.value;
-                if (cmd) {
-                    printToTerminal(`> ${cmd}`, "#555");
-                    processCommand(cmd);
-                    inputField.value = '';
-                }
-            }
-        });
-    </script>
+    });
+</script>
 </body>
 </html>
