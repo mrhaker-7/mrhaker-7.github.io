@@ -3,117 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHOST_OS_V6 | AUTH_GATE</title>
+    <title>Ghost_OS Intelligence</title>
     <style>
-        body { background: #050505; color: #00ff41; font-family: 'Courier New', monospace; padding: 20px; margin: 0; }
-        #output { white-space: pre-wrap; line-height: 1.6; margin-bottom: 15px; }
-        .prompt { color: #00ff41; font-weight: bold; }
-        .line { display: flex; align-items: center; background: rgba(0, 255, 65, 0.05); padding: 5px; border-radius: 4px; }
-        input { background: transparent; border: none; color: #00ff41; font-family: inherit; font-size: 16px; outline: none; flex: 1; }
-        .radar-box { border: 1px double #00ff41; padding: 12px; margin: 10px 0; background: rgba(0,255,65,0.03); border-radius: 8px; }
-        .locked { color: #ff0000; font-weight: bold; } /* Red for locked status */
-        .unlocked { color: #00ff41; font-weight: bold; }
+        body {
+            background-color: #0d0208;
+            color: #00FF41;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 95vh;
+        }
+        #terminal-output {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .input-line {
+            display: flex;
+            align-items: center;
+        }
+        #command-input {
+            background: transparent;
+            border: none;
+            color: #00FF41;
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+            flex-grow: 1;
+            padding-left: 10px;
+        }
+        p { margin: 5px 0; }
+        .red { color: #FF3131; }
+        .green { color: #00FF41; }
+        .yellow { color: #FFFF00; }
+        .gray { color: #555; }
     </style>
 </head>
-<body onclick="document.getElementById('in').focus()">
+<body>
 
-    <div id="output">
-[GHOST_SYSTEM_v6.0_INITIALIZED]
-[SYSTEM_STATUS: <span id="sys-status" class="locked">LOCKED</span>]
----------------------------------------
-RESTRICTED ACCESS. Type <span style="color:#fff">login [password]</span> to proceed.
-(Hint: For development, password is <span style="color:#666">ghost7</span>)
+    <div id="terminal-output">
+        <p>[SYSTEM]: INITIALIZING GHOST_OS CORE...</p>
     </div>
 
-    <div class="line">
-        <span id="terminal-prompt" class="prompt">guest@ghost:~$</span>
-        <input type="text" id="in" autofocus autocomplete="off" spellcheck="false">
-    </div> 
+    <div class="input-line">
+        <span>GHOST_OS ></span>
+        <input type="text" id="command-input" autofocus autocomplete="off">
+    </div>
 
     <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyB4a-n2SG7SXYAmc7preydTChKYphkzpxo",
-        authDomain: "ghost-os-8f445.firebaseapp.com",
-        projectId: "ghost-os-8f445",
-        storageBucket: "ghost-os-8f445.firebasestorage.app",
-        messagingSenderId: "1097985809108",
-        appId: "1:1097985809108:web:45eddccb18d9b8e409b941"
-    };
+        // YOUR SPECIFIC FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyB4a-n2SG7SXYAmc7preydTChKYphkzpxo",
+            authDomain: "ghost-os-8f445.firebaseapp.com",
+            projectId: "ghost-os-8f445",
+            storageBucket: "ghost-os-8f445.firebasestorage.app",
+            messagingSenderId: "1097985809108",
+            appId: "1:1097985809108:web:45eddccb18d9b8e409b941"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const terminal = document.getElementById('terminal-output');
-    const inputField = document.getElementById('command-input');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const terminal = document.getElementById('terminal-output');
+        const inputField = document.getElementById('command-input');
 
-    function printToTerminal(text, color) {
-        const p = document.createElement('p');
-        p.style.color = color;
-        p.innerText = text;
-        terminal.appendChild(p);
-        window.scrollTo(0, document.body.scrollHeight);
-    }
-
-    // Initial Message to confirm script is working
-    printToTerminal("[SYSTEM]: GHOST_OS Core Booting...", "white");
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            printToTerminal(`[ACCESS]: Welcome back, ${user.email}`, "#00FF41");
-        } else {
-            printToTerminal("[SYSTEM]: SECURE ENTRANCE REQUIRED. Please 'signup' or 'login'.", "#FF3131");
+        function printToTerminal(text, color) {
+            const p = document.createElement('p');
+            p.style.color = color;
+            p.innerText = text;
+            terminal.appendChild(p);
+            terminal.scrollTop = terminal.scrollHeight;
         }
-    });
 
-    async function processCommand(cmd) {
-        const args = cmd.trim().split(/\s+/);
-        const command = args[0].toLowerCase();
+        // Authentication Observer
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                printToTerminal(`[ACCESS]: Welcome, Architect (${user.email})`, "#00FF41");
+            } else {
+                printToTerminal("[SYSTEM]: ENCRYPTED. Please 'signup [email] [pass]' or 'login [email] [pass]'.", "#FF3131");
+            }
+        });
 
-        if (command === 'signup') {
-            const email = args[1];
-            const pass = args[2];
-            if(!email || !pass) return printToTerminal("[!] Syntax: signup email password", "orange");
-            printToTerminal(`[ATTEMPT]: Registering ${email}...`, "gray");
-            try {
-                await createUserWithEmailAndPassword(auth, email, pass);
-                printToTerminal("[SUCCESS]: Account Registered to Cloud.", "#00FF41");
-            } catch (err) {
-                printToTerminal(`[CRITICAL ERROR]: ${err.message}`, "#FF3131");
-                if(err.code === "auth/operation-not-allowed") {
-                   printToTerminal("ACTION REQUIRED: You must enable 'Email/Password' in the Firebase Console!", "yellow");
+        async function processCommand(cmd) {
+            const args = cmd.trim().split(/\s+/);
+            const command = args[0].toLowerCase();
+
+            if (command === 'signup') {
+                const email = args[1];
+                const pass = args[2];
+                if(!email || !pass) return printToTerminal("[!] Syntax: signup email password", "yellow");
+                try {
+                    await createUserWithEmailAndPassword(auth, email, pass);
+                    printToTerminal("[SUCCESS]: User registered to Cloud.", "#00FF41");
+                } catch (err) {
+                    printToTerminal(`[ERROR]: ${err.message}`, "#FF3131");
+                }
+            } 
+            
+            else if (command === 'login') {
+                const email = args[1];
+                const pass = args[2];
+                if(!email || !pass) return printToTerminal("[!] Syntax: login email password", "yellow");
+                try {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    printToTerminal("[SUCCESS]: Decryption key accepted. Access Granted.", "#00FF41");
+                } catch (err) {
+                    printToTerminal(`[DENIED]: ${err.message}`, "#FF3131");
                 }
             }
-        } 
-        
-        else if (command === 'login') {
-            const email = args[1];
-            const pass = args[2];
-            if(!email || !pass) return printToTerminal("[!] Syntax: login email password", "orange");
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-                printToTerminal("[SUCCESS]: Decryption Successful. Access Granted.", "#00FF41");
-            } catch (err) {
-                printToTerminal(`[DENIED]: ${err.message}`, "#FF3131");
+
+            else if (command === 'logout') {
+                await signOut(auth);
+                printToTerminal("[SYSTEM]: Offline.", "yellow");
+            }
+
+            else if (command === 'clear') {
+                terminal.innerHTML = '';
+            }
+            
+            else {
+                printToTerminal(`[GHOST]: '${command}' is not a recognized command.`, "white");
             }
         }
 
-        else if (command === 'logout') {
-            await signOut(auth);
-            printToTerminal("[SYSTEM]: Offline.", "yellow");
-        }
-
-        else if (command === 'clear') { terminal.innerHTML = ''; }
-        else { printToTerminal(`[GHOST]: Command '${command}' unknown.`, "white"); }
-    }
-
-    inputField.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const cmd = inputField.value;
-            printToTerminal(`> ${cmd}`, "#555");
-            processCommand(cmd);
-            inputField.value = '';
-        }
-    });
-</script>
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = inputField.value;
+                if (cmd) {
+                    printToTerminal(`> ${cmd}`, "#555");
+                    processCommand(cmd);
+                    inputField.value = '';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
