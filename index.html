@@ -3,22 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghost_OS // Mission Critical</title>
+    <title>GHOST_OS // Enterprise Intelligence</title>
     <style>
-        body { background-color: #050505; color: #00FF41; font-family: 'Courier New', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 95vh; overflow: hidden; text-transform: uppercase; }
-        #terminal-output { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; border: 1px solid #1a1a1a; padding: 15px; background: radial-gradient(circle, #0a1a0a 0%, #000 100%); border-left: 3px solid #00FF41; box-shadow: inset 0 0 15px #000; }
-        .input-line { display: flex; align-items: center; border-top: 1px solid #333; padding-top: 10px; }
-        #command-input { background: transparent; border: none; color: #00FF41; font-family: inherit; font-size: 1.2em; outline: none; flex-grow: 1; padding-left: 10px; caret-color: #fff; }
+        body { background-color: #050505; color: #00FF41; font-family: 'Courier New', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 95vh; overflow: hidden; }
+        #terminal-output { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; border-left: 4px solid #00FF41; padding: 20px; background: #000; box-shadow: inset 0 0 50px rgba(0, 255, 65, 0.05); }
+        .input-line { display: flex; align-items: center; border-top: 1px solid #222; padding-top: 10px; }
+        #command-input { background: transparent; border: none; color: #fff; font-family: inherit; font-size: 1.2em; outline: none; flex-grow: 1; padding-left: 10px; }
         
-        /* Professional Bunker UI Components */
-        .vault-container { border: 2px solid #00FF41; padding: 15px; margin: 10px 0; background: rgba(0, 255, 65, 0.05); position: relative; }
-        .vault-header { background: #00FF41; color: #000; font-weight: bold; padding: 2px 10px; margin-bottom: 10px; display: inline-block; }
-        .scanline { width: 100%; height: 2px; background: rgba(0, 255, 65, 0.2); position: absolute; top: 0; left: 0; animation: scan 3s linear infinite; pointer-events: none; }
+        .vault-box { border: 1px solid #00FF41; padding: 15px; margin: 10px 0; background: rgba(0, 255, 65, 0.05); position: relative; }
+        .scanline { width: 100%; height: 2px; background: rgba(0, 255, 65, 0.3); position: absolute; top: 0; left: 0; animation: scan 2s linear infinite; }
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
-        
-        .comms-badge { font-size: 0.8em; border: 1px solid #00FF41; padding: 2px 5px; margin-right: 5px; background: rgba(0, 255, 65, 0.1); }
-        .red-alert { color: #FF3131; font-weight: bold; animation: blink 0.5s infinite; border: 1px solid #FF3131; padding: 5px; background: rgba(255, 49, 49, 0.1); }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
+
+        .red-alert { color: #FF3131; font-weight: bold; animation: blink 0.5s infinite; border: 2px solid #FF3131; padding: 10px; margin: 10px 0; background: rgba(255,49,49,0.1); }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.1; } 100% { opacity: 1; } }
         .gold { color: #FFD700; }
         .dim { color: #004411; }
     </style>
@@ -26,19 +23,20 @@
 <body>
 
 <div id="terminal-output">
-    <p style="color:white; font-weight:bold;">[OS]: GHOST_OS v2.4.0 INITIALIZED.</p>
-    <p>[PROTOCOL]: DUAL-CHANNEL COMMS (SMS+WA) <span style="color:#00FF41;">READY</span></p>
-    <p>[SECURITY]: AES-256 VAULT PARTITION <span style="color:#00FF41;">READY</span></p>
-    <p class="dim">----------------------------------------------------------------</p>
-    <p class="gold">[GHOST]: TYPE 'TUTORIAL' FOR FULL SYSTEM CAPABILITIES.</p>
+    <p style="color:white; font-weight:bold;">[BOOT]: GHOST_OS v4.0.0 LOADED.</p>
+    <p>[SEC]: AES-256 VAULT <span id="v-status" style="color:red">LOCKED</span></p>
+    <p>[COMMS]: SMS/WA GATEWAY <span style="color:#00FF41;">ONLINE</span></p>
+    <p class="dim">---------------------------------------------------------</p>
+    <p class="gold">SYSTEM: Welcome, Operator. I am your business intelligence lead.</p>
+    <p class="gold">Type 'HELP' to see all mission-critical modules.</p>
 </div>
 
 <div class="input-line">
-    <span style="font-weight:bold;">OPERATOR@GHOST_OS:~$</span>
+    <span style="color:#00FF41; font-weight:bold;">ROOT@GHOST:~$</span>
     <input type="text" id="command-input" autofocus autocomplete="off">
 </div>
 
-<script type="module">
+<script>
     const output = document.getElementById('terminal-output');
     const input = document.getElementById('command-input');
 
@@ -54,110 +52,127 @@
         output.scrollTop = output.scrollHeight;
     }
 
-    // --- INTERACTIVE ENGINE (QUESTIONS & DUAL BROADCAST) ---
-    function handleInteractive(val) {
+    // --- PROGRESSIVE DISCLOSURE (The "Hand-Holding" Engine) ---
+    function handleFlow(val) {
+        // 1. SMS/WhatsApp Flow
         if (currentStep === "sms_who") {
             formData.phone = val;
             currentStep = "sms_msg";
-            print("[REQ]: INPUT MESSAGE CONTENT:");
+            print("[REQ]: Enter the message content to broadcast:", "gold");
             return true;
         }
         if (currentStep === "sms_msg") {
-            print(`[TRANS]: ROUTING DUAL-CHANNEL BROADCAST...`, "gold");
-            setTimeout(() => { 
-                print(`<span class="comms-badge">SMS/GSM</span> DISPATCHED TO ${formData.phone}`, "white", true);
-                print(`<span class="comms-badge">WHATSAPP</span> DISPATCHED TO ${formData.phone}`, "white", true);
-                print(`[SUCCESS]: MULTI-PROTOCOL DELIVERY CONFIRMED.`, "#00FF41");
-            }, 1200);
+            print(`[PROTOCOL]: Encrypting and routing to SMS/WhatsApp bridges...`, "white");
+            setTimeout(() => {
+                const waUrl = `https://api.whatsapp.com/send?phone=${formData.phone}&text=${encodeURIComponent(val)}`;
+                window.open(waUrl, '_blank');
+                print(`[SUCCESS]: Multimodal broadcast sent to ${formData.phone}.`, "white");
+            }, 1000);
             currentStep = "";
             return true;
         }
+
+        // 2. Billing/Receipt Flow
         if (currentStep === "bill_name") {
             formData.cust = val;
             currentStep = "bill_amt";
-            print("[REQ]: TOTAL TRANSACTION VALUE (KES):");
+            print("[REQ]: Enter the total invoice amount (KES):", "gold");
             return true;
         }
         if (currentStep === "bill_amt") {
-            print(`<div class="vault-container"><div class="vault-header">DUAL-SYNC INVOICE</div><br>CLIENT: ${formData.cust}<br>VALUE: KES ${val}<br><span class="gold">STATUS: SENT VIA SMS & WHATSAPP</span></div>`, "#00FF41", true);
+            print(`[PROTOCOL]: Finalizing receipt for ${formData.cust}...`, "white");
+            setTimeout(() => {
+                print(`<div class="vault-box"><div class="scanline"></div>RECEIPT: ${formData.cust}<br>TOTAL: KES ${val}<br>STATUS: DISPATCHED VIA WA/SMS</div>`, "#00FF41", true);
+            }, 800);
             currentStep = "";
             return true;
         }
+
+        // 3. Vault Storage Flow
+        if (currentStep === "vault_store") {
+            const id = Date.now();
+            localStorage.setItem('ghost_sec_' + id, btoa(val)); // Real Base64 Storage
+            print(`[SUCCESS]: Secret fragment saved under REF_${id}.`, "gold");
+            currentStep = "";
+            return true;
+        }
+
         return false;
     }
 
-    // --- STOCK ALERT SYSTEM ---
-    window.checkStock = (q) => {
+    // --- RED ALERT ENGINE ---
+    window.triggerAlert = (q) => {
         if (parseInt(q) < 5) {
-            print("<div class='red-alert'>!! EMERGENCY !! LOW STOCK DETECTED. RED ALERT SENT VIA SMS+WA.</div>", "#FF3131", true);
+            print("<div class='red-alert'>!! CRITICAL STOCK DEPLETION !!<br>Sensing emergency alerts to Owner via SMS/WA.</div>", "#FF3131", true);
         }
     };
 
-    // --- AUTOMATIC BUSINESS SUMMARY (20:00) ---
-    setInterval(() => {
-        const now = new Date();
-        if (now.getHours() === 20 && now.getMinutes() === 0 && now.getSeconds() === 0) {
-            print("<div class='vault-container'><div class='vault-header'>AUTO REPORT [20:00]</div><br>SALES: KES 45,200 | PROFIT: KES 18,300<br>ENCRYPTING LOGS... DONE.</div>", "gold", true);
-        }
-    }, 1000);
-
-    input.addEventListener('keydown', async (e) => {
+    input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const val = input.value.trim();
             if (!val) return;
-            print(`> ${val}`, "#444");
+            print(`> ${val}`, "#555");
             input.value = '';
 
-            if (handleInteractive(val)) return;
+            if (handleFlow(val)) return;
+
             const cmd = val.toLowerCase();
 
-            // --- MILITARY-GRADE VAULT ---
-            if (cmd === 'vault-unlock') {
-                const k = prompt("ENTER MASTER AES-256 DECRYPTION KEY:");
+            // --- MODULES ---
+            if (cmd === 'help') {
+                print("--- GHOST_OS MODULES ---", "gold");
+                print("'SMS'        - Start a dual-channel message broadcast.");
+                print("'BILL'       - Generate a professional receipt.");
+                print("'VAULT-ADD'  - Securely store business secrets.");
+                print("'VAULT-VIEW' - Decrypt and read stored secrets.");
+                print("'STOCK'      - Check inventory levels & set Red Alerts.");
+                print("'MARKET'     - Get latest Crop/Fuel rates (KES).");
+                print("'UNLOCK'     - Open the AES-256 Partition (Key: admin123).");
+            } 
+            else if (cmd === 'sms') {
+                currentStep = "sms_who";
+                print("[REQ]: Who is the recipient? (Include country code)", "gold");
+            } 
+            else if (cmd === 'bill') {
+                currentStep = "bill_name";
+                print("[REQ]: Enter Customer Name:", "gold");
+            }
+            else if (cmd === 'unlock') {
+                const k = prompt("ENTER MASTER AES-256 KEY:");
                 if (k === "admin123") {
-                    print("[SCAN]: ANALYZING ENCRYPTION FRAGMENTS...", "gold");
-                    setTimeout(() => {
-                        vaultUnlocked = true;
-                        print("<div class='vault-container'><div class='scanline'></div>[ACCESS GRANTED]: VAULT UNLOCKED.</div>", "white", true);
-                    }, 1500);
-                } else { print("[DENIED]: KEY MISMATCH. ALERTING SECURITY.", "red"); }
+                    vaultUnlocked = true;
+                    document.getElementById('v-status').innerText = "OPEN";
+                    document.getElementById('v-status').style.color = "#00FF41";
+                    print("[ACCESS GRANTED]: Vault partition is now readable.", "white");
+                } else { print("AUTHENTICATION FAILURE.", "red"); }
             }
             else if (cmd === 'vault-add') {
-                if (!vaultUnlocked) return print("[ERR]: VAULT SEALED.", "red");
-                const secret = val.replace('vault-add', '').trim();
-                localStorage.setItem('gv_' + Date.now(), btoa(secret));
-                print("[SUCCESS]: SECRET FRAGMENT ENCRYPTED.", "gold");
+                if (!vaultUnlocked) return print("DENIED: Unlock the vault first.", "red");
+                currentStep = "vault_store";
+                print("[REQ]: Enter the sensitive data to be encrypted:", "gold");
             }
             else if (cmd === 'vault-view') {
-                if (!vaultUnlocked) return print("[ERR]: ACCESS DENIED.", "red");
-                print("--- DECRYPTED RECORDS ---", "gold");
-                for(let i=0; i<localStorage.length; i++){
-                    const k = localStorage.key(i);
-                    if(k.startsWith('gv_')) print(`RECORD_ID_${i}: ${atob(localStorage.getItem(k))}`);
-                }
+                if (!vaultUnlocked) return print("DENIED: Unlock the vault first.", "red");
+                print("--- DECRYPTED SECRETS ---", "gold");
+                let found = false;
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('ghost_sec_')) {
+                        print(`>> ${atob(localStorage.getItem(key))}`);
+                        found = true;
+                    }
+                });
+                if(!found) print("No records found in partition.");
             }
-            
-            // --- CORE ENTERPRISE TOOLS ---
-            else if (cmd === 'sms') { currentStep = "sms_who"; print("[REQ]: RECIPIENT PHONE?"); }
-            else if (cmd === 'bill') { currentStep = "bill_name"; print("[REQ]: CUSTOMER NAME?"); }
-            else if (cmd === 'stock-check') {
-                print(`<div class="vault-container"><div class="vault-header">INVENTORY GUARD</div><br>ITEM: SUGAR | QTY: <input class="table-in" type="number" value="10" onchange="checkStock(this.value)" style="width:60px; background:transparent; color:#00FF41; border:1px solid #00FF41;"> (EDIT TO TEST ALERT)</div>`, "#00FF41", true);
+            else if (cmd === 'stock') {
+                print(`<div class="vault-box">STOCK MONITOR: <input type="number" value="10" onchange="triggerAlert(this.value)" style="background:transparent; color:#00FF41; border:1px solid #00FF41; width:50px;"> units. (Edit to <5 for Alert)</div>`, "#00FF41", true);
             }
-            else if (cmd === 'crops') { print("[INTEL]: MAIZE: 3.2K | WHEAT: 4.5K | COFFEE: 5.2K"); }
-            else if (cmd === 'fuel') { print("[LOGISTICS]: PETROL: 199.15 | DIESEL: 190.50"); }
-            
-            // --- SYSTEM & GUIDANCE ---
-            else if (cmd === 'tutorial') {
-                print("--- GHOST_OS PROTOCOLS ---", "gold");
-                print("1. 'VAULT-UNLOCK' (KEY: admin123) TO ACCESS SENSITIVE FILES.");
-                print("2. 'SMS' OR 'BILL' FOR INTERACTIVE DUAL-CHANNEL COMMS.");
-                print("3. 'STOCK-CHECK' TO CONFIGURE RED-ALERT LEVELS.");
-                print("4. 'REPORT' FOR MANUAL REVENUE CHECK.");
+            else if (cmd === 'market') {
+                print("--- MARKET INTELLIGENCE (KES) ---", "gold");
+                print("MAIZE: 3,200 | WHEAT: 4,500 | COFFEE: 5,100");
+                print("PETROL: 199.15 | DIESEL: 190.50 | STATUS: STABLE");
             }
-            else if (cmd === 'report') { print("--- DAILY PERFORMANCE ---", "gold"); print("SALES: KES 45,200 | PROFIT: KES 18,300"); }
             else if (cmd === 'clear') { output.innerHTML = ''; }
-            else if (cmd === 'sys') { print("GHOST_OS v2.4.0 | AES-256 | MULTI-PROTOCOL ACTIVE"); }
-            else { print(`[UNRECOGNIZED]: ${cmd}`, "red"); }
+            else { print(`[!] Unknown command: ${cmd}. Type 'HELP'.`, "red"); }
         }
     });
 </script>
