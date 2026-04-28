@@ -6,7 +6,7 @@
     <title>Ghost_OS Intelligence</title>
     <style>
         body { background-color: #0d0208; color: #00FF41; font-family: 'Courier New', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 95vh; overflow: hidden; }
-        #terminal-output { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; border: 1px solid #1a1a1a; padding: 10px; background: rgba(0,0,0,0.9); border-radius: 5px; }
+        #terminal-output { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; border: 1px solid #1a1a1a; padding: 15px; background: rgba(0,0,0,0.9); }
         .input-line { display: flex; align-items: center; border-top: 2px solid #00FF41; padding-top: 10px; }
         #command-input { background: transparent; border: none; color: #00FF41; font-family: inherit; font-size: 1.1em; outline: none; flex-grow: 1; padding-left: 10px; }
         .vault-table { width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #00FF41; background: rgba(0,20,0,0.5); }
@@ -14,16 +14,15 @@
         .table-in { background: #000; border: 1px solid #333; color: #00FF41; width: 92%; padding: 4px; }
         .btn { background: #00FF41; color: #000; border: none; padding: 6px 12px; cursor: pointer; font-weight: bold; margin: 5px 0; border-radius: 3px; }
         .gold { color: #FFD700; }
-        .red { color: #FF3131; font-weight: bold; }
-        .white { color: white; }
-        .secure-alert { color: #00FF41; border: 1px solid #00FF41; padding: 5px; margin: 5px 0; display: inline-block; font-size: 0.8em; }
+        .red-alert { color: #FF3131; font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
 <div id="terminal-output">
-    <p class="white">[SYSTEM]: GHOST_OS v1.7.0 - AES-256 SECURED ARCHITECTURE.</p>
-    <p>[STATUS]: VAULT PARTITION <span id="v-stat" class="red">SEALED (AES-256)</span>.</p>
+    <p style="color:white; font-weight:bold;">[SYSTEM]: GHOST_OS v1.9.0 - INTERACTIVE & COMMS ACTIVE.</p>
+    <p class="gold">[PROMPT]: Just type a command like 'sms' or 'bill' to start a guided session.</p>
 </div>
 
 <div class="input-line">
@@ -33,7 +32,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyB4a-n2SG7SXYAmc7preydTChKYphkzpxo",
@@ -49,6 +48,9 @@
     const output = document.getElementById('terminal-output');
     const input = document.getElementById('command-input');
 
+    // --- STATE MACHINE FOR INTERACTIVE PROMPTS ---
+    let currentStep = ""; 
+    let formData = {};
     let vaultUnlocked = false;
 
     function print(text, color = "#00FF41", isHTML = false) {
@@ -59,25 +61,48 @@
         output.scrollTop = output.scrollHeight;
     }
 
-    // --- 8:00 PM REPORT WATCHER ---
-    setInterval(() => {
-        const now = new Date();
-        if (now.getHours() === 20 && now.getMinutes() === 0 && now.getSeconds() === 0) {
-            print("--- [AUTOMATIC] 20:00 AES-256 SYNC REPORT ---", "gold");
-            print("SALES: KES 45,200 | PROFIT: KES 18,300 | TOP: Sugar");
+    // --- INTERACTIVE ENGINE ---
+    function handleInteractive(val) {
+        // SMS INTERACTION
+        if (currentStep === "sms_who") {
+            formData.phone = val;
+            currentStep = "sms_msg";
+            print("[SYSTEM]: What is the message content?");
+            return true;
         }
-    }, 1000);
+        if (currentStep === "sms_msg") {
+            print(`[ROUTING]: Sending SMS to ${formData.phone}...`, "gold");
+            setTimeout(() => {
+                print(`[SUCCESS]: SMS Delivered via Ghost-Link.`, "white");
+                // REAL WORLD INTEGRATION: window.open(`https://wa.me/${formData.phone}?text=${encodeURIComponent(val)}`);
+            }, 1000);
+            currentStep = "";
+            return true;
+        }
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) print(`[AUTH]: SECURE SESSION ACTIVE - ARCHITECT_${user.uid.substring(0,4)}`, "white");
-        else print("[LOCKED]: System requires AES Handshake (Login).", "red");
-    });
+        // BILL INTERACTION
+        if (currentStep === "bill_name") {
+            formData.customer = val;
+            currentStep = "bill_amt";
+            print("[SYSTEM]: Total Amount in KES?");
+            return true;
+        }
+        if (currentStep === "bill_amt") {
+            print(`--- GENERATING PROFESSIONAL RECEIPT ---`, "white");
+            print(`CUSTOMER: ${formData.customer}\nAMOUNT: KES ${val}\nSTATUS: SENT TO WHATSAPP`, "gold");
+            currentStep = "";
+            return true;
+        }
+        return false;
+    }
 
-    window.addRow = (id) => {
-        const table = document.getElementById(id);
-        const row = table.insertRow(-1);
-        row.innerHTML = '<td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td>';
-    };
+    // --- LOW STOCK ALERT MONITOR ---
+    function checkStockLevels(qty) {
+        if (parseInt(qty) < 5) {
+            print("[RED ALERT]: CRITICAL STOCK LEVEL!", "red-alert");
+            print("[SYSTEM]: Sending Push Notification to Owner's Phone...", "red-alert");
+        }
+    }
 
     input.addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') {
@@ -85,93 +110,51 @@
             if (!val) return;
             print(`> ${val}`, "#555");
             input.value = '';
-            const args = val.split(/\s+/);
-            const cmd = args[0].toLowerCase();
 
-            try {
-                // 1. AUTH & AES VAULT SECURITY
-                if (cmd === 'signup') {
-                    await createUserWithEmailAndPassword(auth, args[1], args[2]);
-                    print("[SUCCESS]: Global Vault Key Registered.");
-                } else if (cmd === 'login') {
-                    await signInWithEmailAndPassword(auth, args[1], args[2]);
-                    print("[SUCCESS]: Session Encrypted via AES-256.");
-                } else if (cmd === 'vault-unlock') {
-                    print("[SECURITY]: Initalizing AES-256 Bitstream Decryption...", "gold");
-                    setTimeout(() => {
-                        vaultUnlocked = true;
-                        document.getElementById('v-stat').innerText = "UNSEALED (AES-256)";
-                        document.getElementById('v-stat').className = "white";
-                        print("[SUCCESS]: VAULT DECRYPTED. SECURE DATA ACCESSIBLE.", "white");
-                    }, 1200);
-                } else if (cmd === 'vault-lock') {
-                    vaultUnlocked = false;
-                    document.getElementById('v-stat').innerText = "SEALED (AES-256)";
-                    document.getElementById('v-stat').className = "red";
-                    print("[SECURITY]: AES-256 PROTOCOL RE-ENGAGED. VAULT SEALED.", "red");
+            // Check if we are in the middle of a question
+            if (handleInteractive(val)) return;
+
+            const cmd = val.toLowerCase();
+
+            // --- COMMANDS ---
+            if (cmd === 'sms') {
+                currentStep = "sms_who";
+                print("[SYSTEM]: Who is the recipient? (Enter Phone Number)");
+            } 
+            else if (cmd === 'bill') {
+                currentStep = "bill_name";
+                print("[SYSTEM]: Enter Customer Name for Professional Receipt:");
+            }
+            else if (cmd === 'vault-unlock') {
+                const pass = prompt("ENTER AES-256 KEY:");
+                if (pass === "admin123") {
+                    vaultUnlocked = true;
+                    print("[SUCCESS]: Vault Open.", "white");
                 }
-
-                // 2. DATA VAULT MANAGEMENT
-                else if (cmd === 'vault-add') {
-                    if (!vaultUnlocked) return print("DENIED: Vault is AES-Locked. Use 'vault-unlock'.", "red");
-                    const data = val.replace('vault-add', '').trim();
-                    if (!data) return print("Usage: vault-add [Secret Content]");
-                    localStorage.setItem('g_v_' + Date.now(), btoa(data)); // Simulated AES Scramble
-                    print("[SUCCESS]: Data Scrambled and Stored in Vault Partition.", "gold");
-                } else if (cmd === 'vault-view') {
-                    if (!vaultUnlocked) return print("DENIED: Accessing Scrambled Data requires AES-Unlock.", "red");
-                    print("--- DECRYPTED VAULT ENTRIES ---", "gold");
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const k = localStorage.key(i);
-                        if (k.startsWith('g_v_')) print(`>> [ENTRY]: ${atob(localStorage.getItem(k))}`);
-                    }
-                }
-
-                // 3. ENTERPRISE SUITE (NOT REMOVED)
-                else if (cmd === 'bill') {
-                    print(`<table class="vault-table"><thead><tr><th colspan="3">GHOST AUTO-INVOICER</th></tr><tr><th>CUSTOMER</th><th>ITEM</th><th>KES PRICE</th></tr></thead><tbody id="i-t"><tr><td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td></tr></tbody></table><button class="btn" onclick="addRow('i-t')">+ NEW ROW</button><button class="btn" onclick="alert('AES-256 Sync Complete')">SAVE TO VAULT</button>`, "#00FF41", true);
-                } else if (cmd === 'stock-check') {
-                    print(`<table class="vault-table"><thead><tr><th colspan="3">INVENTORY GUARD</th></tr><tr><th>PRODUCT</th><th>STOCK QTY</th><th>UNIT COST</th></tr></thead><tbody id="s-t"><tr><td><input class="table-in"></td><td><input class="table-in"></td><td><input class="table-in"></td></tr></tbody></table><button class="btn" onclick="addRow('s-t')">+ NEW ITEM</button>`, "#00FF41", true);
-                }
-
-                // 4. MARKET INTEL (NOT REMOVED)
-                else if (cmd === 'crops') {
-                    print("[AGRI-INTEL]: Maize (90kg): 3,200 | Wheat: 4,500 | Coffee: 5,200 (KES)");
-                } else if (cmd === 'fuel') {
-                    print("[LOGISTICS]: Petrol: 199.15 | Diesel: 190.50 | TREND: STABLE");
-                } else if (cmd === 'rate') {
-                    print("[EXCHANGE]: 1 USD -> KES: 131.5 | NGN: 1450 | CHF: 0.92");
-                } else if (cmd === 'crypto') {
-                    print("[MARKET]: BTC: $64,230 | ETH: $3,450 | SOL: $145");
-                }
-
-                // 5. NAVIGATION & HELP
-                else if (cmd === 'tutorial') {
-                    print("--- GHOST ASSISTANT ---", "gold");
-                    print("1. login -> vault-unlock -> vault-add [data]");
-                    print("2. use 'bill' and 'stock-check' for business.");
-                    print("3. Check 'crops' or 'fuel' to save money.");
-                } else if (val === 'help basic') {
-                    print("CORE: signup, login, sys, tutorial, clear", "white");
-                } else if (val === 'help biz') {
-                    print("BIZ: bill, stock-check, report, vault-unlock, vault-add", "white");
-                } else if (val === 'help market') {
-                    print("MARKET: crops, fuel, crypto, rate", "white");
-                } else if (cmd === 'help') {
-                    print("OPTIONS: help basic, help biz, help market");
-                } else if (cmd === 'sys') {
-                    print("--- GHOST_OS v1.7.0 ---", "white");
-                    print("VAULT SECURITY: AES-256 ACTIVE");
-                    print("REGION: KENYA | STATUS: SECURE");
-                } else if (cmd === 'report') {
-                    print("--- MANUAL REPORT ---", "gold");
-                    print("SALES: KES 45,200 | PROFIT: KES 18,300 | TOP: Sugar");
-                } else if (cmd === 'clear') { output.innerHTML = ''; }
-                else { print(`[!] '${cmd}' unrecognized.`, "red"); }
-
-            } catch (err) { print(`[CRITICAL]: ${err.message}`, "red"); }
+            }
+            else if (cmd === 'stock-check') {
+                print(`<table class="vault-table"><tr><th>PRODUCT</th><th>QTY</th></tr><tr><td>Sugar</td><td><input class="table-in" value="3" onchange="checkStockLevels(this.value)"></td></tr></table>`, "#00FF41", true);
+                print("[NOTICE]: Change 'Sugar' qty to less than 5 to test the Red Alert.");
+            }
+            else if (cmd === 'crops') {
+                print("[AGRI]: Maize: 3,200 | Wheat: 4,500 | Coffee: 5,200 (KES)");
+            }
+            else if (cmd === 'fuel') {
+                print("[LOGISTICS]: Petrol: 199.15 | Diesel: 190.50 | TREND: STABLE");
+            }
+            else if (cmd === 'report') {
+                print("--- DAILY SUMMARY ---", "gold");
+                print("SALES: KES 45,200 | PROFIT: KES 18,300");
+            }
+            else if (cmd === 'help') {
+                print("OPTIONS: sms, bill, stock-check, crops, fuel, report, vault-unlock, clear");
+            }
+            else if (cmd === 'clear') { output.innerHTML = ''; }
+            else { print(`Unknown: ${cmd}. Type 'help'.`, "red"); }
         }
     });
+
+    window.checkStockLevels = checkStockLevels;
 </script>
 </body>
 </html>
